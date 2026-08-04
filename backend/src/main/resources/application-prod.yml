@@ -1,12 +1,13 @@
 # ============================================================================
 # PRODUCTION PROFILE (application-prod.yml)
 # ----------------------------------------------------------------------------
-# Activated externally via SPRING_PROFILES_ACTIVE=prod (set on Railway) —
+# Activated externally via SPRING_PROFILES_ACTIVE=prod (set on Render) —
 # NOT hardcoded anywhere in the codebase.
 #
-# Environment variables required in production (set in Railway dashboard):
+# Environment variables required in production (set in Render dashboard):
 #
 #   DB_URL        – full JDBC URL, e.g. jdbc:postgresql://<host>:5432/<db>
+#                   (for Supabase: jdbc:postgresql://<host>:5432/postgres)
 #   DB_USERNAME   – database user
 #   DB_PASSWORD   – database password
 #
@@ -19,10 +20,10 @@
 #   JWT_ACCESS_EXPIRATION_MS    – access token expiry  (default: 900000)
 #   JWT_REFRESH_EXPIRATION_MS   – refresh token expiry (default: 604800000)
 #
-# NOTE ON RAILWAY:
-#   Set these to match Railway's provided PGHOST/PGPORT/PGDATABASE/PGUSER/PGPASSWORD,
-#   or Railway's own DATABASE_URL if using JDBC-compatible format — verify exact
-#   variable names Railway assigns when the Postgres service is provisioned.
+# NOTE ON RENDER + SUPABASE:
+#   Point DB_URL/DB_USERNAME/DB_PASSWORD at the Supabase Postgres instance
+#   (host/port/user/password shown in Supabase Dashboard → Project Settings →
+#   Database). Render will also inject PORT automatically at deploy time.
 #
 # NOTE ON CORS:
 #   Allowed origins are currently hardcoded in
@@ -58,7 +59,7 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
     # DDL_AUTO=update and Flyway can conflict on schema ownership; prefer
-    # DDL_AUTO=validate on Railway once Flyway has created the schema.
+    # DDL_AUTO=validate on Render once Flyway has created the schema.
     validate-on-migrate: true
 
 springdoc:
