@@ -1,7 +1,8 @@
 package com.rehman.finance.auth.security;
 
 import com.rehman.finance.auth.jwt.JwtService;
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -18,15 +19,17 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
+@Slf4j
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtService jwtService;
+    private final String allowedOrigins;
 
     private static final String[] PUBLIC_URLS = {
             "/api/v1/auth/**",
@@ -35,6 +38,15 @@ public class SecurityConfig {
             "/v3/api-docs/**",
             "/swagger-ui.html"
     };
+
+    public SecurityConfig(
+            JwtAuthenticationFilter jwtAuthenticationFilter,
+            JwtService jwtService,
+            @Value("${app.cors.allowed-origins:http://localhost:4200}") String allowedOrigins) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.jwtService = jwtService;
+        this.allowedOrigins = allowedOrigins;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -56,23 +68,31 @@ public class SecurityConfig {
     }
 
     /**
-     * CORS for the Angular dev server (http://localhost:4200).
-     * WHY: The frontend and backend run on different origins; without this the
-     * browser blocks every request and the UI reports network/CORS failures.
+     * CORS origins are externalized via app.cors.allowed-origins (comma-separated
+     * env var APP_CORS_ORIGINS in prod), so deployed frontends are not blocked.
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+        List<String> origins = parseAllowedOrigins();
+        log.info("CORS allowed origins: {}", origins);
+
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:4200", "http://127.0.0.1:4200"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
-        configuration.setExposedHeaders(List.of("Authorization"));
-        configuration.setAllowCredentials(true);
+        configuration.setAllowedOrigins(origins);
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        configuration.setAllowCredentials(false);
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    private List<String> parseAllowedOrigins() {
+        return Arrays.stream(allowedOrigins.split(","))
+                .map(String::trim)
+                .filter(origin -> !origin.isEmpty())
+                .toList();
     }
 
     @Bean

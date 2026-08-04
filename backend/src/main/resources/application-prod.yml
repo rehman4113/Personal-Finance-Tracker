@@ -26,10 +26,10 @@
 #   Database). Render will also inject PORT automatically at deploy time.
 #
 # NOTE ON CORS:
-#   Allowed origins are currently hardcoded in
-#   auth/security/SecurityConfig.java (http://localhost:4200). For production
-#   you must externalize them (e.g. read APP_CORS_ORIGINS via @Value) before
-#   pointing a deployed frontend at this backend — out of scope for this file.
+#   Allowed origins are externalized via APP_CORS_ORIGINS (comma-separated),
+#   read by auth/security/SecurityConfig.java (default: http://localhost:4200).
+#   On Render set it to include both the local origin and the live Cloudflare
+#   Pages URL, e.g. APP_CORS_ORIGINS=http://localhost:4200,https://<site>.pages.dev
 # ============================================================================
 
 server:
@@ -84,3 +84,5 @@ app:
     secret: ${JWT_SECRET}
     access-token-expiration: ${JWT_ACCESS_EXPIRATION_MS:900000}
     refresh-token-expiration: ${JWT_REFRESH_EXPIRATION_MS:604800000}
+  cors:
+    allowed-origins: ${APP_CORS_ORIGINS:http://localhost:4200}
