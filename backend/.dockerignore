@@ -1,0 +1,16 @@
+# Build artifacts
+target/
+build/
+
+# VCS / IDE
+.git/
+.idea/
+*.iml
+
+# Docs (not needed in the image)
+*.md
+
+# Local dev config with credentials — keep it out of the build context
+# (application-prod.yml intentionally NOT excluded; it only holds
+# env-var placeholders and ships inside the JAR)
+src/main/resources/application.yaml
