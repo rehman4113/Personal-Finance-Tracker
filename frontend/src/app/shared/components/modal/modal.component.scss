@@ -1,0 +1,118 @@
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1070;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+
+  &__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(8, 15, 30, 0.5);
+    backdrop-filter: blur(2px);
+  }
+}
+
+.modal-dialog__wrap {
+  position: relative;
+  width: 100%;
+  animation: pfm-modal-in 0.18s ease;
+}
+
+@keyframes pfm-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-box {
+  margin: 0 auto;
+  background: color-mix(in srgb, var(--pfm-card-bg) 82%, transparent);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--pfm-radius-card);
+  box-shadow: var(--pfm-shadow-card);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  overflow: hidden;
+  max-height: calc(100vh - 2rem);
+  display: flex;
+  flex-direction: column;
+
+  &--sm {
+    max-width: 400px;
+  }
+
+  &--md {
+    max-width: 560px;
+  }
+
+  &--lg {
+    max-width: 760px;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.05rem 1.4rem;
+    border-bottom: 1px solid var(--pfm-divider);
+  }
+
+  &__title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--pfm-text-primary);
+    margin: 0;
+  }
+
+  &__close {
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--pfm-text-muted);
+    cursor: pointer;
+    transition: background-color 0.14s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+  }
+
+  &__body {
+    padding: 1.4rem;
+    overflow-y: auto;
+  }
+
+  &__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    padding: 1rem 1.4rem;
+    border-top: 1px solid var(--pfm-divider);
+  }
+}
+
+@media (max-width: 575.98px) {
+  .modal-box {
+    &__footer {
+      flex-direction: column-reverse;
+
+      .btn {
+        width: 100%;
+      }
+    }
+  }
+}

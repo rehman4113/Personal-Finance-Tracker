@@ -1,0 +1,172 @@
+.auth-illustration {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  background: linear-gradient(150deg, var(--pfm-primary-deep), var(--pfm-primary) 55%, var(--pfm-primary-light));
+  color: #fff;
+
+  /* Parallax depth layers: each element consumes the mouse-driven
+     --pfm-par-x/--pfm-par-y custom props at its own depth multiplier
+     (near layers move more, far layers barely move). Plain transforms —
+     no WebGL/Three.js. */
+  &__blob {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    will-change: transform;
+
+    &--one {
+      width: 520px;
+      height: 520px;
+      top: -160px;
+      right: -120px;
+      transform: translate(
+        calc(var(--pfm-par-x, 0px) * 0.35),
+        calc(var(--pfm-par-y, 0px) * 0.35)
+      );
+    }
+
+    &--two {
+      width: 420px;
+      height: 420px;
+      bottom: -140px;
+      left: -100px;
+      background: rgba(255, 209, 102, 0.06);
+      transform: translate(
+        calc(var(--pfm-par-x, 0px) * 0.55),
+        calc(var(--pfm-par-y, 0px) * 0.55)
+      );
+    }
+  }
+
+  /* Decorations are scattered around the edges so they stay visible around
+     the floating card instead of hiding behind it. */
+  &__tiles {
+    position: absolute;
+    left: 7%;
+    top: 14%;
+    display: flex;
+    gap: 1rem;
+  }
+
+  &__tile {
+    width: 72px;
+    height: 72px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 20px;
+    font-size: 1.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+    will-change: transform;
+
+    /* Near layer — moves furthest with the mouse. */
+    transform: translate(var(--pfm-par-x, 0px), var(--pfm-par-y, 0px));
+
+    &--solid {
+      background: rgba(255, 255, 255, 0.14);
+      color: #dcecff;
+    }
+
+    &--accent {
+      background: rgba(255, 209, 102, 0.18);
+      color: var(--pfm-panel-accent);
+      transform: translate(
+        calc(var(--pfm-par-x, 0px) * 1.25),
+        calc(var(--pfm-par-y, 0px) * 1.25)
+      );
+    }
+
+    &--light {
+      background: rgba(169, 211, 255, 0.12);
+      color: #a9d3ff;
+      transform: translate(
+        calc(var(--pfm-par-x, 0px) * 0.75),
+        calc(var(--pfm-par-y, 0px) * 0.75)
+      );
+    }
+  }
+
+  /* Far layer — drifts opposite to the mouse for extra depth. */
+  &__chart {
+    position: absolute;
+    right: 8%;
+    bottom: 22%;
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    height: 120px;
+    transform: translate(
+      calc(var(--pfm-par-x, 0px) * -0.4),
+      calc(var(--pfm-par-y, 0px) * -0.4)
+    );
+
+    /* Bars grow from 0 height on load — staggered, ~600ms total. */
+    span {
+      width: 18px;
+      height: 0;
+      border-radius: 5px 5px 0 0;
+      background: linear-gradient(180deg, var(--pfm-panel-accent), rgba(255, 209, 102, 0.2));
+      animation: pfm-auth-bar-grow 0.5s ease-out both;
+      animation-delay: calc(var(--bar-i) * 70ms);
+    }
+
+    span:nth-child(1) { --bar-i: 0; --bar-h: 34%; }
+    span:nth-child(2) { --bar-i: 1; --bar-h: 50%; }
+    span:nth-child(3) { --bar-i: 2; --bar-h: 42%; }
+    span:nth-child(4) { --bar-i: 3; --bar-h: 62%; }
+    span:nth-child(5) { --bar-i: 4; --bar-h: 55%; }
+    span:nth-child(6) { --bar-i: 5; --bar-h: 76%; }
+    span:nth-child(7) { --bar-i: 6; --bar-h: 68%; }
+    span:nth-child(8) { --bar-i: 7; --bar-h: 92%; }
+  }
+
+  &__headline {
+    position: absolute;
+    left: 7%;
+    bottom: 10%;
+    max-width: 400px;
+    text-align: left;
+  }
+
+  &__title {
+    font-size: 1.9rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 0.75rem;
+  }
+
+  &__subtitle {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.82);
+    max-width: 380px;
+  }
+}
+
+@keyframes pfm-auth-bar-grow {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--bar-h, 40%);
+  }
+}
+
+/* Mobile/small screens (per §27.1.2): simplify the background so the card is
+   the clear focus — keep only the (dimmed) gradient + blobs. */
+@media (max-width: 767.98px) {
+  .auth-illustration {
+    &__tiles,
+    &__chart,
+    &__headline {
+      display: none;
+    }
+
+    &__blob--one,
+    &__blob--two {
+      opacity: 0.5;
+    }
+  }
+}

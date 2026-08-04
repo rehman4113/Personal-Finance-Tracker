@@ -1,0 +1,42 @@
+.empty-state {
+  text-align: center;
+  padding: 3rem 1.5rem;
+
+  &__art {
+    width: 96px;
+    height: 96px;
+    margin: 0 auto 1.1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--pfm-primary-tint), rgba(255, 255, 255, 0.06));
+    border: 1px solid var(--pfm-card-border);
+    animation: pfm-float 3.4s ease-in-out infinite;
+
+    .bi {
+      font-size: 2.6rem;
+      color: var(--pfm-panel-accent);
+    }
+  }
+
+  &__title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--pfm-text-primary);
+    margin-bottom: 0.35rem;
+  }
+
+  &__message {
+    color: var(--pfm-text-muted);
+    font-size: 0.9rem;
+    max-width: 380px;
+    margin: 0 auto 1.25rem;
+  }
+
+  &__cta {
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 0.6rem 1.25rem;
+  }
+}

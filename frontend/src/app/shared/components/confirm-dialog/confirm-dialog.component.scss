@@ -1,0 +1,42 @@
+.confirm-dialog {
+  text-align: center;
+
+  &__icon {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--pfm-primary-tint);
+    color: var(--pfm-primary-icon);
+
+    .bi {
+      font-size: 1.7rem;
+    }
+
+    &--danger {
+      background: var(--pfm-danger-tint);
+      color: var(--pfm-danger);
+    }
+  }
+
+  &__message {
+    color: var(--pfm-text-muted);
+    font-size: 0.92rem;
+    margin-bottom: 1.4rem;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: center;
+    gap: 0.6rem;
+
+    .btn {
+      min-width: 110px;
+      border-radius: 8px;
+      font-weight: 500;
+    }
+  }
+}

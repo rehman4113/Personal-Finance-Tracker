@@ -1,0 +1,25 @@
+.form-header__icon {
+  width: var(--pfm-icon-circle-size);
+  height: var(--pfm-icon-circle-size);
+  margin-inline: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--pfm-primary-tint);
+
+  .bi {
+    font-size: 1.35rem;
+    color: var(--pfm-primary-icon);
+  }
+}
+
+.form-header__title {
+  font-size: var(--pfm-heading-size);
+  font-weight: 600;
+  color: var(--pfm-text-primary);
+}
+
+.form-header__subtitle {
+  font-size: var(--pfm-subtext-size);
+}

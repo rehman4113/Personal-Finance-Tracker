@@ -1,0 +1,109 @@
+<app-form-header
+  title="Create Account"
+  subtitle="Register to start managing your finances"
+  icon="bi-person-plus"
+/>
+
+@if (apiError()) {
+  <div class="alert alert-danger py-2" role="alert">
+    <i class="bi bi-exclamation-circle me-2"></i>{{ apiError() }}
+  </div>
+}
+
+<form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+  <div class="row g-2">
+    <div class="col-sm-6">
+      <label for="firstName" class="form-label">First Name</label>
+      <div class="input-group">
+        <span class="input-group-text"><i class="bi bi-person"></i></span>
+        <input
+          id="firstName"
+          type="text"
+          class="form-control form-control-lg-custom"
+          [class.is-invalid]="form.controls.firstName.invalid && (form.controls.firstName.dirty || form.controls.firstName.touched)"
+          formControlName="firstName"
+          placeholder="John"
+          autocomplete="given-name"
+        />
+      </div>
+      <app-validation-messages [control]="form.controls.firstName" />
+    </div>
+
+    <div class="col-sm-6">
+      <label for="lastName" class="form-label">Last Name</label>
+      <div class="input-group">
+        <span class="input-group-text"><i class="bi bi-person"></i></span>
+        <input
+          id="lastName"
+          type="text"
+          class="form-control form-control-lg-custom"
+          [class.is-invalid]="form.controls.lastName.invalid && (form.controls.lastName.dirty || form.controls.lastName.touched)"
+          formControlName="lastName"
+          placeholder="Doe"
+          autocomplete="family-name"
+        />
+      </div>
+      <app-validation-messages [control]="form.controls.lastName" />
+    </div>
+  </div>
+
+  <div class="mb-2 mt-2">
+    <label for="email" class="form-label">Email</label>
+    <div class="input-group">
+      <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+      <input
+        id="email"
+        type="email"
+        class="form-control form-control-lg-custom"
+        [class.is-invalid]="form.controls.email.invalid && (form.controls.email.dirty || form.controls.email.touched)"
+        formControlName="email"
+        placeholder="you@gmail.com"
+        autocomplete="email"
+      />
+    </div>
+    <app-validation-messages [control]="form.controls.email" />
+  </div>
+
+  <div class="row g-2">
+    <div class="col-sm-4">
+      <app-country-code-dropdown formControlName="countryCode" inputId="countryCode" label="Country Code" />
+    </div>
+    <div class="col-sm-8">
+      <app-phone-number-input
+        formControlName="phone"
+        inputId="phone"
+        label="Phone Number"
+        placeholder="3001234567"
+        [countryCode]="countryCode()"
+      />
+    </div>
+  </div>
+
+  <app-password-input
+    formControlName="password"
+    label="Password"
+    inputId="password"
+    placeholder="Create a strong password"
+    [showStrength]="true"
+    [showChecklist]="true"
+  />
+
+  <app-password-input
+    formControlName="confirmPassword"
+    label="Confirm Password"
+    inputId="confirmPassword"
+    placeholder="Repeat your password"
+  />
+
+  <app-submit-button
+    label="Create Account"
+    icon="bi-person-plus"
+    [loading]="authService.isLoading()"
+    [disabled]="form.invalid"
+  />
+</form>
+
+<p class="text-center mt-3 mb-0 small">
+  Already have an account?
+  <a [routerLink]="routes.LOGIN" class="text-decoration-none fw-semibold">Login</a>
+</p>

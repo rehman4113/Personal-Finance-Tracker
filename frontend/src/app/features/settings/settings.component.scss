@@ -1,0 +1,12 @@
+.settings-avatar {
+  width: 4.5rem;
+  height: 4.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: #fff;
+  background: linear-gradient(135deg, var(--pfm-primary, #4f6ef7), var(--pfm-primary-dark, #2f4bd4));
+  border-radius: 50%;
+  box-shadow: 0 0.5rem 1rem rgba(79, 110, 247, 0.25);
+}

@@ -1,0 +1,30 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--pfm-bg-gradient-start), var(--pfm-bg-gradient-end));
+}
+
+.home-stub {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.home-stub__card {
+  width: 100%;
+  max-width: 440px;
+  text-align: center;
+  background: var(--pfm-card-bg);
+  border-radius: var(--pfm-radius-lg);
+  box-shadow: var(--pfm-shadow);
+  padding: 2rem;
+}
+
+.home-stub__icon {
+  .bi {
+    font-size: 3rem;
+    color: var(--pfm-primary);
+  }
+}

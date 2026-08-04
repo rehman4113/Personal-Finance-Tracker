@@ -1,0 +1,117 @@
+<div
+  class="searchable-dropdown"
+  [class.searchable-dropdown--sm]="size() === 'sm'"
+  [class.searchable-dropdown--lg]="size() === 'lg'"
+  [class.searchable-dropdown--disabled]="disabled()"
+  appClickOutside
+  (appClickOutside)="close()"
+>
+  <div
+    class="searchable-dropdown__box"
+    [class.is-open]="open()"
+    [class.is-invalid]="invalid()"
+    role="combobox"
+    [attr.aria-expanded]="open()"
+    (click)="toggleBox()"
+  >
+    @if (open()) {
+      <input
+        #filterInput
+        class="searchable-dropdown__filter"
+        type="text"
+        [value]="query()"
+        [placeholder]="placeholder()"
+        (input)="onQuery($event)"
+        (keydown)="onKeydown($event)"
+        (blur)="onTouched()"
+      />
+    } @else {
+      <span
+        class="searchable-dropdown__value"
+        [class.searchable-dropdown__value--placeholder]="!selectedLabel()"
+      >
+        {{ selectedLabel() || placeholder() }}
+      </span>
+    }
+
+    @if (clearable() && selected() !== null && selected() !== '') {
+      <button
+        type="button"
+        class="searchable-dropdown__clear"
+        tabindex="-1"
+        aria-label="Clear selection"
+        (mousedown)="$event.stopPropagation()"
+        (click)="clear($event)"
+      >
+        <i class="bi bi-x-lg"></i>
+      </button>
+    }
+    <i class="bi bi-chevron-down searchable-dropdown__caret"></i>
+  </div>
+
+  @if (open()) {
+    <div class="searchable-dropdown__panel" (mousedown)="$event.preventDefault()">
+      @if (creating() && isCreateRow(rows()[0])) {
+        <div class="searchable-dropdown__create searchable-dropdown__create--busy">
+          <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+          Creating '{{ query().trim() }}'…
+        </div>
+      } @else {
+        @for (row of rows(); track trackRow(row); let i = $index) {
+          @if (isCreateRow(row)) {
+            <button
+              type="button"
+              class="searchable-dropdown__create"
+              [class.is-highlighted]="isHighlighted(i)"
+              (click)="create()"
+            >
+              <i class="bi bi-plus-circle me-2"></i>
+              {{ createLabel() }} '<span class="fw-semibold">{{ query().trim() }}</span>'
+            </button>
+          } @else {
+            <div
+              class="searchable-dropdown__option"
+              [class.is-highlighted]="isHighlighted(i)"
+              role="option"
+              [attr.aria-selected]="str(selected()) === str(row.value)"
+              (mousedown)="$event.preventDefault()"
+              (click)="select(row)"
+            >
+              <span class="searchable-dropdown__option-name">{{ row.name }}</span>
+              @if (row.subtitle) {
+                <small class="searchable-dropdown__option-subtitle">{{ row.subtitle }}</small>
+              }
+              @if (allowDelete() && row.deletable !== false) {
+                <button
+                  type="button"
+                  class="searchable-dropdown__delete"
+                  title="Delete {{ row.name }}"
+                  aria-label="Delete {{ row.name }}"
+                  tabindex="-1"
+                  (click)="requestDelete(row, $event)"
+                >
+                  <i class="bi bi-x-lg"></i>
+                </button>
+              }
+            </div>
+          }
+        } @empty {
+          <div class="searchable-dropdown__empty">No options found</div>
+        }
+      }
+    </div>
+  }
+
+  @if (deleteOpen()) {
+    <app-confirm-dialog
+      [open]="deleteOpen()"
+      title="Delete"
+      [message]="deleteMessage()"
+      confirmLabel="Delete"
+      [danger]="true"
+      [loading]="deleting()"
+      (confirmed)="confirmDelete()"
+      (dismissed)="cancelDelete()"
+    />
+  }
+</div>

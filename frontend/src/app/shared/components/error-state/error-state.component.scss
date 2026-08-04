@@ -1,0 +1,39 @@
+.error-state {
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+
+  &__art {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--pfm-danger-tint);
+
+    .bi {
+      font-size: 2rem;
+      color: var(--pfm-danger);
+    }
+  }
+
+  &__title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--pfm-text-primary);
+    margin-bottom: 0.3rem;
+  }
+
+  &__message {
+    color: var(--pfm-text-muted);
+    font-size: 0.875rem;
+    max-width: 420px;
+    margin: 0 auto 1.1rem;
+  }
+
+  &__retry {
+    border-radius: 8px;
+    font-weight: 500;
+  }
+}

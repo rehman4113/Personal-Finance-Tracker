@@ -1,0 +1,23 @@
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--pfm-overlay-bg);
+  backdrop-filter: blur(1px);
+  border-radius: var(--pfm-radius-lg);
+
+  &__inner {
+    text-align: center;
+  }
+
+  &__message {
+    margin-top: 0.75rem;
+    margin-bottom: 0;
+    color: var(--pfm-text-muted);
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+}

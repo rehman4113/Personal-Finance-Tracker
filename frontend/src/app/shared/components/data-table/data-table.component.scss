@@ -1,0 +1,142 @@
+.data-table {
+  background: var(--pfm-card-bg);
+  border: 1px solid var(--pfm-card-border);
+  border-radius: var(--pfm-radius-card);
+  box-shadow: var(--pfm-shadow);
+  overflow: hidden;
+
+  &__toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1.2rem;
+    border-bottom: 1px solid var(--pfm-divider);
+  }
+
+  &__meta {
+    font-size: 0.85rem;
+    color: var(--pfm-text-muted);
+  }
+
+  &__wrap {
+    overflow-x: auto;
+    max-height: 560px;
+    overflow-y: auto;
+  }
+
+  &__table {
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: var(--pfm-table-header-bg);
+      color: var(--pfm-table-header-text);
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 0.7rem 1rem;
+      white-space: nowrap;
+      border-bottom: 1px solid var(--pfm-divider);
+    }
+
+    tbody td {
+      padding: 0.75rem 1rem;
+      font-size: 0.9rem;
+      color: var(--pfm-text-primary);
+      vertical-align: middle;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      white-space: nowrap;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    tbody tr {
+      transition: background-color 0.12s ease, transform 0.15s ease;
+
+      /* Staggered fade-in when rows enter the table (data load, filter,
+         pagination). Fill-mode backwards: once the entrance finishes the
+         element returns to normal styles, so hover transforms keep working. */
+      animation: pfm-row-in 0.42s ease backwards;
+      animation-delay: calc(min(var(--row-i), 8) * 45ms);
+
+      &:hover {
+        background: var(--pfm-row-hover);
+        transform: translateY(-1px);
+      }
+    }
+  }
+
+  @keyframes pfm-row-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  &__th--sortable {
+    cursor: pointer;
+    user-select: none;
+
+    &:hover {
+      color: var(--pfm-panel-accent);
+    }
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.8rem 1.2rem;
+    border-top: 1px solid var(--pfm-divider);
+    flex-wrap: wrap;
+  }
+
+  &__size {
+    width: auto;
+  }
+}
+
+.btn-icon {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--pfm-text-muted);
+  font-size: 0.95rem;
+  transition: background-color 0.14s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--pfm-text-primary);
+  }
+}
+
+.skeleton-line {
+  display: block;
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--pfm-skeleton-from) 25%, var(--pfm-skeleton-to) 50%, var(--pfm-skeleton-from) 75%);
+  background-size: 200% 100%;
+  animation: pfm-shimmer 1.2s infinite;
+}
+
+@keyframes pfm-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}

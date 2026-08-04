@@ -1,0 +1,151 @@
+$navbar-height: 60px;
+
+.top-navbar {
+  height: $navbar-height;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 1.25rem;
+  background: #101a2e;
+  border-bottom: 1px solid var(--pfm-card-border);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+  position: relative;
+  z-index: 2;
+}
+
+.top-navbar__toggle {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--pfm-text-primary);
+  font-size: 1.15rem;
+  cursor: pointer;
+  transition: background-color 0.16s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.12);
+  }
+}
+
+.top-navbar__user {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  border: none;
+  background: transparent;
+  padding: 0.3rem 0.5rem;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color 0.16s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.07);
+  }
+}
+
+.top-navbar__avatar {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--pfm-primary), var(--pfm-primary-light));
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.85rem;
+  box-shadow: 0 0 0 2px rgba(255, 209, 102, 0.35);
+}
+
+.top-navbar__user-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.2;
+}
+
+.top-navbar__user-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--pfm-text-primary);
+}
+
+.top-navbar__user-email {
+  font-size: 0.75rem;
+  color: var(--pfm-text-muted);
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.top-navbar__caret {
+  font-size: 0.7rem;
+  color: var(--pfm-text-muted);
+}
+
+/* Dropdown panel lives in the shared dropdown component (dark surface via
+   .app-shell tokens) — these styles theme the menu contents. */
+.top-navbar__menu {
+  background: var(--pfm-card-bg);
+  border: 1px solid var(--pfm-card-border);
+  box-shadow: var(--pfm-shadow-card);
+}
+
+.top-navbar__menu-header {
+  padding: 0.5rem 0.6rem 0.6rem;
+  border-bottom: 1px solid var(--pfm-divider);
+  margin-bottom: 0.3rem;
+}
+
+.top-navbar__menu-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--pfm-text-primary);
+}
+
+.top-navbar__menu-email {
+  font-size: 0.78rem;
+  color: var(--pfm-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.top-navbar__menu-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 0.5rem 0.6rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: var(--pfm-text-primary);
+  cursor: pointer;
+  transition: background-color 0.14s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  &--danger {
+    color: var(--pfm-danger);
+
+    &:hover {
+      background: var(--pfm-danger-tint);
+    }
+  }
+}
+
+@media (max-width: 575.98px) {
+  .top-navbar__user-email {
+    display: none;
+  }
+}

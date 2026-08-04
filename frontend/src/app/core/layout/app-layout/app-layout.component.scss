@@ -1,0 +1,61 @@
+/* Faint upward-trend chart silhouette + soft grid for the content backdrop */
+$content-trend-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='520' height='220' viewBox='0 0 520 220' fill='none'%3E%3Cpath d='M10 180 L110 140 L170 155 L260 100 L330 118 L430 60 L510 30' stroke='%23ffd166' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='510' cy='30' r='5' fill='%23ffd166'/%3E%3Cpath d='M10 195 Q180 155 280 175 T510 130' stroke='%23ffffff' stroke-opacity='0.4' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+
+.app-shell {
+  min-height: 100vh;
+  background: var(--pfm-bg-gradient-start);
+
+  &__main {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    margin-left: var(--pfm-sidebar-w);
+    transition: margin-left 0.24s ease;
+  }
+
+  &.app-shell--collapsed .app-shell__main {
+    margin-left: var(--pfm-sidebar-w-collapsed);
+  }
+
+  &__content {
+    position: relative;
+    flex: 1;
+    padding: 1.5rem 1.75rem 2.5rem;
+
+    /* Dark navy gradient + faint glowing orb + soft grid + trend silhouette.
+       Decor sits under the routed content via layered backgrounds. */
+    background:
+      radial-gradient(900px 480px at 88% -10%, rgba(255, 209, 102, 0.05), transparent 60%),
+      radial-gradient(700px 420px at -8% 108%, rgba(56, 189, 248, 0.05), transparent 60%),
+      linear-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+      $content-trend-svg,
+      linear-gradient(160deg, var(--pfm-bg-gradient-start), var(--pfm-bg-gradient-end));
+    background-repeat: no-repeat, no-repeat, repeat, repeat, no-repeat, no-repeat;
+    background-position: right top, left bottom, 0 0, 0 0, left bottom, 0 0;
+    background-size: auto, auto, 28px 28px, 28px 28px, 52% auto, cover;
+  }
+
+  /* Keep routed content above the decorative layers */
+  &__content > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Route transition wrapper — needs relative positioning so the outgoing
+     view can fade without disturbing the shell layout. */
+  &__route {
+    position: relative;
+  }
+}
+
+/* Mobile: sidebar becomes an off-canvas drawer — content spans full width. */
+@media (max-width: 767.98px) {
+  .app-shell__main {
+    margin-left: 0;
+  }
+
+  .app-shell__content {
+    padding: 1rem 1rem 2rem;
+  }
+}

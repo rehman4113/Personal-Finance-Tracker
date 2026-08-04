@@ -1,0 +1,2 @@
+/** Shared directives (trim input, autofocus) — when needed */
+export {};

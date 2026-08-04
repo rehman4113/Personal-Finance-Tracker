@@ -1,0 +1,5 @@
+/**
+ * Shared form header — placeholder for Section 7 implementation.
+ * WHY: Title + subtitle + icon block reused by login, register, forgot-password.
+ */
+export {};

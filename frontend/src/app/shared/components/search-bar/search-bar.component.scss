@@ -1,0 +1,40 @@
+.search-bar {
+  position: relative;
+  width: 100%;
+  max-width: 340px;
+
+  &__icon {
+    position: absolute;
+    left: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--pfm-text-faint);
+    font-size: 0.9rem;
+    pointer-events: none;
+  }
+
+  .form-control {
+    padding-left: 2.35rem;
+    padding-right: 2.2rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+  }
+
+  &__clear {
+    position: absolute;
+    right: 0.55rem;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    color: var(--pfm-text-faint);
+    font-size: 0.9rem;
+    padding: 0.2rem;
+    line-height: 1;
+    cursor: pointer;
+
+    &:hover {
+      color: var(--pfm-panel-accent);
+    }
+  }
+}

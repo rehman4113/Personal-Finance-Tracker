@@ -1,0 +1,39 @@
+# ============================================================
+# Personal Finance Tracker — repository root .gitignore
+# Local overrides: backend/.gitignore, frontend/.gitignore
+# ============================================================
+
+# --- Dependencies & build output ---
+node_modules/
+dist/
+target/
+.angular/
+out-tsc/
+tmp/
+coverage/
+
+# --- Logs ---
+*.log
+npm-debug.log*
+yarn-error.log*
+testem.log
+
+# --- Environment / secrets ---
+.env
+.env.*
+!.env.example
+*.local
+
+# --- IDEs / editors ---
+.idea/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+.factorypath
+
+# --- OS ---
+.DS_Store
+Thumbs.db

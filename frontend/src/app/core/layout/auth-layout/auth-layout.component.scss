@@ -1,0 +1,70 @@
+.auth-layout {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+/* Full-bleed background behind everything (per §27.1.1) — fixed so it never
+   scrolls; purely decorative, so clicks pass through. */
+.auth-layout__background {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.auth-layout__center {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* Floating glass-card on top of the background (per §27.1.2). */
+.auth-layout__card {
+  width: 100%;
+  max-width: 460px;
+  display: flex;
+  flex-direction: column;
+  background: var(--pfm-card-bg);
+  border-radius: var(--pfm-radius-card);
+  box-shadow: var(--pfm-shadow-card);
+  padding: var(--pfm-card-padding);
+}
+
+.auth-layout__brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--pfm-primary);
+
+  .bi {
+    font-size: 1.25rem;
+  }
+}
+
+/* Last-resort fallback (per §27.1.3): only the card's inner content scrolls,
+   with the brand header anchored — scrollbar hidden. */
+@media (min-width: 768px) {
+  .auth-layout__card {
+    max-height: calc(100vh - 3rem);
+  }
+
+  .auth-layout__content {
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+}

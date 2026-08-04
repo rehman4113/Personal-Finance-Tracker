@@ -1,0 +1,85 @@
+# ============================================================================
+# PRODUCTION PROFILE (application-prod.yml)
+# ----------------------------------------------------------------------------
+# Activated externally via SPRING_PROFILES_ACTIVE=prod (set on Railway) —
+# NOT hardcoded anywhere in the codebase.
+#
+# Environment variables required in production (set in Railway dashboard):
+#
+#   DB_URL        – full JDBC URL, e.g. jdbc:postgresql://<host>:5432/<db>
+#   DB_USERNAME   – database user
+#   DB_PASSWORD   – database password
+#
+# Optional variables (sensible defaults when unset):
+#
+#   PORT          – server port            (default: 8080)
+#   DDL_AUTO      – hibernate ddl-auto     (default: update)
+#   SHOW_SQL      – log SQL statements     (default: false)
+#   JWT_SECRET    – JWT signing secret     (default: none — REQUIRED in prod)
+#   JWT_ACCESS_EXPIRATION_MS    – access token expiry  (default: 900000)
+#   JWT_REFRESH_EXPIRATION_MS   – refresh token expiry (default: 604800000)
+#
+# NOTE ON RAILWAY:
+#   Set these to match Railway's provided PGHOST/PGPORT/PGDATABASE/PGUSER/PGPASSWORD,
+#   or Railway's own DATABASE_URL if using JDBC-compatible format — verify exact
+#   variable names Railway assigns when the Postgres service is provisioned.
+#
+# NOTE ON CORS:
+#   Allowed origins are currently hardcoded in
+#   auth/security/SecurityConfig.java (http://localhost:4200). For production
+#   you must externalize them (e.g. read APP_CORS_ORIGINS via @Value) before
+#   pointing a deployed frontend at this backend — out of scope for this file.
+# ============================================================================
+
+server:
+  port: ${PORT:8080}
+
+spring:
+  application:
+    name: personal-finance-manager
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: ${DDL_AUTO:update}
+    show-sql: ${SHOW_SQL:false}
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: false
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    # DDL_AUTO=update and Flyway can conflict on schema ownership; prefer
+    # DDL_AUTO=validate on Railway once Flyway has created the schema.
+    validate-on-migrate: true
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /api-docs
+
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui
+    operationsSorter: method
+    tagsSorter: alpha
+    display-request-duration: true
+    try-it-out-enabled: true
+
+logging:
+  level:
+    org.flywaydb: INFO
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    access-token-expiration: ${JWT_ACCESS_EXPIRATION_MS:900000}
+    refresh-token-expiration: ${JWT_REFRESH_EXPIRATION_MS:604800000}

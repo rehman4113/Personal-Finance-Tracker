@@ -1,0 +1,57 @@
+<app-form-header
+  title="Welcome Back"
+  subtitle="Sign in to manage your finances"
+  icon="bi-box-arrow-in-right"
+/>
+
+@if (apiError()) {
+  <div class="alert alert-danger py-2" role="alert">
+    <i class="bi bi-exclamation-circle me-2"></i>{{ apiError() }}
+  </div>
+}
+
+<form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+  <div class="mb-2">
+    <label for="email" class="form-label">Email</label>
+    <div class="input-group">
+      <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+      <input
+        id="email"
+        type="email"
+        class="form-control form-control-lg-custom"
+        [class.is-invalid]="emailControl.invalid && (emailControl.dirty || emailControl.touched)"
+        formControlName="email"
+        placeholder="you@gmail.com"
+        autocomplete="email"
+      />
+    </div>
+    <app-validation-messages [control]="emailControl" />
+  </div>
+
+  <app-password-input
+    formControlName="password"
+    label="Password"
+    inputId="password"
+    placeholder="Enter your password"
+  />
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" id="rememberMe" formControlName="rememberMe" />
+      <label class="form-check-label" for="rememberMe">Remember me</label>
+    </div>
+    <a routerLink="/forgot-password" class="small text-decoration-none">Forgot password?</a>
+  </div>
+
+  <app-submit-button
+    label="Sign In"
+    icon="bi-arrow-right"
+    [loading]="authService.isLoading()"
+    [disabled]="form.invalid"
+  />
+</form>
+
+<p class="text-center mt-3 mb-0 small">
+  Don't have an account?
+  <a [routerLink]="routes.REGISTER" class="text-decoration-none fw-semibold">Register</a>
+</p>

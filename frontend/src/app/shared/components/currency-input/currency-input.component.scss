@@ -1,0 +1,19 @@
+.input-group-text {
+  background: var(--pfm-input-bg);
+  border: 1px solid var(--pfm-input-border);
+  border-right: none;
+  color: var(--pfm-text-muted);
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding-inline: 0.75rem;
+  border-radius: 8px 0 0 8px;
+}
+
+:host ::ng-deep .form-control-lg-custom {
+  border-radius: 0 8px 8px 0;
+}
+
+.form-control-lg-custom {
+  font-size: var(--pfm-input-lg);
+  padding: var(--pfm-input-padding-y) var(--pfm-input-padding-x);
+}
