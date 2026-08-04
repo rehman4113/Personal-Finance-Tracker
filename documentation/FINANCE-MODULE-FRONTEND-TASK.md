@@ -9,7 +9,7 @@
 ## 0. Hard Constraints (Non-Negotiable)
 
 1. **The Auth module is the design system for the whole application.** Every Finance screen MUST follow the exact same visual language (buttons, cards, inputs, radius, spacing, typography, animations, shadows, hovers, focus, transitions, loading, toasts). **DO NOT redesign the application.**
-2. Use **ONLY** the backend APIs, request/response DTOs, validation rules, response format, and business logic defined in `AUTH-FINANCE-GUIDE.md` (`../backend/AUTH-FINANCE-GUIDE.md`).
+2. Use **ONLY** the backend APIs, request/response DTOs, validation rules, response format, and business logic defined in `AUTH-FINANCE-GUIDE.md` (in this folder).
 3. **Never invent APIs. Never rename APIs. Never change request/response contracts.**
 4. All responses use the standard `ApiResponse` envelope: `{ success, code, message, data, timestamp }`. Finance prefix: `/api/v1/finance`.
 5. **This is NOT a CRUD application** — it is a reusable enterprise finance application:

@@ -1,8 +1,9 @@
 -- ============================================================
 -- Initial Schema (DDL only)
--- Schema DDL is versioned here. The ONLY system seed rows live in
--- V2 (transaction types + statuses). Wallet types, purposes and
--- subcategories are user-created via the creatable dropdowns.
+-- Schema DDL is versioned here. All system seed rows live in
+-- V2 (transaction types + statuses + system purposes and loan
+-- directions). Wallet types and user purposes/subcategories are
+-- user-created via the creatable dropdowns.
 -- ============================================================
 CREATE TABLE "users" (
   "id" BIGSERIAL PRIMARY KEY,

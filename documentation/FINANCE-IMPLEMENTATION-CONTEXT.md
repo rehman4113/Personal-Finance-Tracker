@@ -1,7 +1,7 @@
 # Finance Module — Implementation Context
 
 > **Purpose:** Track progress, architecture decisions, and folder explanations while building the frontend finance module.
-> **Backend contract:** `../backend/AUTH-FINANCE-GUIDE.md`
+> **Backend contract:** `AUTH-FINANCE-GUIDE.md`
 > **Task spec:** `./FINANCE-MODULE-FRONTEND-TASK.md`
 > **Scope:** Finance module implementation — progress tracked against Section 26 (Implementation Order) and Section 25 (Acceptance Criteria). Section 27 requires this log.
 

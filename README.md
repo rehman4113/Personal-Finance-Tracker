@@ -8,8 +8,9 @@ Angular 20 single-page app (`frontend/`). Features include wallets, transactions
 
 ```
 Personal-Finance-Tracker/
-├── backend/    — Spring Boot 4 application (Java, PostgreSQL, Flyway, JWT auth)
-├── frontend/   — Angular 20 application (Chart.js, Bootstrap 5)
+├── backend/       — Spring Boot 4 application (Java, PostgreSQL, Flyway, JWT auth)
+├── frontend/      — Angular 20 application (Chart.js, Bootstrap 5)
+├── documentation/ — project docs (API contract, task specs, progress logs)
 ├── README.md
 └── .gitignore
 ```
@@ -26,7 +27,7 @@ cd backend
 ./mvnw spring-boot:run      # local dev server on http://localhost:8082
 ```
 
-Full API contract: `backend/AUTH-FINANCE-GUIDE.md`.
+Full API contract: `documentation/AUTH-FINANCE-GUIDE.md`.
 
 ## Frontend (Angular)
 

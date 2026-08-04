@@ -4,7 +4,7 @@ Angular 20 frontend for the Personal Finance Manager application.
 This repository currently implements the **Authentication module only** (login, register, session management).
 The Finance module (wallets, transactions, budgets, loans, shared expenses) is **out of scope** for now.
 
-> Backend contract: `../backend/AUTH-FINANCE-GUIDE.md` — Spring Boot 4 backend running at `http://localhost:8082`.
+> Backend contract: `../documentation/AUTH-FINANCE-GUIDE.md` — Spring Boot 4 backend running at `http://localhost:8082`.
 
 ---
 
@@ -120,4 +120,4 @@ Angular 20 · TypeScript (strict) · Standalone Components · Angular Router (la
 
 - `AUTH-MODULE-FRONTEND-TASK.md` — full task specification (architecture, folder explanations, acceptance criteria).
 - `AUTH-IMPLEMENTATION-CONTEXT.md` — implementation progress log and decisions.
-- Backend guide: `../backend/AUTH-FINANCE-GUIDE.md` — complete API contract (auth + future finance module).
+- Backend guide: `../documentation/AUTH-FINANCE-GUIDE.md` — complete API contract (auth + future finance module).
