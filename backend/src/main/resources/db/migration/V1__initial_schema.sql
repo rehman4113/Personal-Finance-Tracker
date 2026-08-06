@@ -127,6 +127,21 @@ CREATE TABLE "pf_fi_receipt_attachment" (
   UNIQUE ("user_id", "file_name")
 );
 
+CREATE TABLE "pf_fi_loan_users" (
+  "id" BIGSERIAL PRIMARY KEY,
+  "user_id" bigint NOT NULL REFERENCES "users"("id") DEFERRABLE INITIALLY IMMEDIATE,
+  "full_name" varchar(150) NOT NULL,
+  "contact_number" varchar(50),
+  "unique_key" varchar(255) UNIQUE NOT NULL,
+  "current_amount" decimal(19,2) DEFAULT 0,
+  "loan_status" varchar(20) DEFAULT 'CLOSED',
+  "notes" text,
+  "created_at" timestamp,
+  "updated_at" timestamp
+);
+
+CREATE INDEX ON "pf_fi_loan_users" ("user_id");
+
 CREATE TABLE "pf_fi_transaction_history" (
   "id" BIGSERIAL PRIMARY KEY,
   "user_id" bigint NOT NULL REFERENCES "users"("id") DEFERRABLE INITIALLY IMMEDIATE,
@@ -187,21 +202,6 @@ CREATE TABLE "pf_fi_budget_limits" (
   "updated_at" timestamp,
   UNIQUE ("user_id", "transaction_purpose_id", "month")
 );
-
-CREATE TABLE "pf_fi_loan_users" (
-  "id" BIGSERIAL PRIMARY KEY,
-  "user_id" bigint NOT NULL REFERENCES "users"("id") DEFERRABLE INITIALLY IMMEDIATE,
-  "full_name" varchar(150) NOT NULL,
-  "contact_number" varchar(50),
-  "unique_key" varchar(255) UNIQUE NOT NULL,
-  "current_amount" decimal(19,2) DEFAULT 0,
-  "loan_status" varchar(20) DEFAULT 'CLOSED',
-  "notes" text,
-  "created_at" timestamp,
-  "updated_at" timestamp
-);
-
-CREATE INDEX ON "pf_fi_loan_users" ("user_id");
 
 CREATE TABLE "pf_fi_loan_history" (
   "id" BIGSERIAL PRIMARY KEY,
