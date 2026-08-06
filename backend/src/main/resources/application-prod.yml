@@ -67,10 +67,9 @@ spring:
     enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: true
-    # V1/V2 are edited as part of the squash workflow, so checksums on the
-    # already-migrated Render database differ from the resolved files.
-    # Missing columns/tables are picked up by Hibernate (DDL_AUTO=update).
-    validate-on-migrate: false
+    # Production database is recreated fresh (delete + re-provision on Render),
+    # so V1/V2 always apply with matching checksums. Keep validation ON.
+    validate-on-migrate: true
 
 springdoc:
   api-docs:
