@@ -4,6 +4,7 @@ import com.rehman.finance.auth.dto.request.ForgotPasswordRequest;
 import com.rehman.finance.auth.dto.request.LoginRequest;
 import com.rehman.finance.auth.dto.request.RefreshTokenRequest;
 import com.rehman.finance.auth.dto.request.RegistrationRequest;
+import com.rehman.finance.auth.dto.request.ResendOtpRequest;
 import com.rehman.finance.auth.dto.request.ResetPasswordRequest;
 import com.rehman.finance.auth.dto.request.UpdateProfileRequest;
 import com.rehman.finance.auth.dto.request.VerifyEmailRequest;
@@ -12,6 +13,8 @@ import com.rehman.finance.auth.dto.response.LoginResponse;
 import com.rehman.finance.auth.dto.response.LogoutResponse;
 import com.rehman.finance.auth.dto.response.RefreshTokenResponse;
 import com.rehman.finance.auth.dto.response.RegisterResponse;
+import com.rehman.finance.auth.dto.response.DemoCompleteResponse;
+import com.rehman.finance.auth.dto.response.ResendOtpResponse;
 import com.rehman.finance.auth.dto.response.ResetPasswordResponse;
 import com.rehman.finance.auth.dto.response.UserProfileResponse;
 import com.rehman.finance.auth.dto.response.VerifyEmailResponse;
@@ -27,6 +30,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -99,6 +103,18 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("Email verified successfully", authService.verifyEmail(request)));
     }
 
+    @Operation(summary = "Resend the email verification OTP")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Verification code sent to the email"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid request"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "User not found"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "Email already verified")
+    })
+    @PostMapping("/resend-otp")
+    public ResponseEntity<ApiResponse<ResendOtpResponse>> resendOtp(@Valid @RequestBody ResendOtpRequest request) {
+        return ResponseEntity.ok(ApiResponse.success("Verification code sent", authService.resendOtp(request)));
+    }
+
     @Operation(summary = "Request a password reset OTP")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Reset code generated if the email is registered")
@@ -132,5 +148,17 @@ public class AuthController {
             @Valid @RequestBody UpdateProfileRequest request) {
         return ResponseEntity.ok(ApiResponse.success("Profile updated successfully",
                 authService.updateProfile(currentUser.getUserId(), request)));
+    }
+
+    @Operation(summary = "Mark the demo tour as completed")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Demo tour marked as completed"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "User not found")
+    })
+    @PatchMapping("/demo-complete")
+    public ResponseEntity<ApiResponse<DemoCompleteResponse>> markDemoComplete(
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+        return ResponseEntity.ok(ApiResponse.success("Demo tour marked as completed",
+                authService.markDemoComplete(currentUser.getUserId())));
     }
 }

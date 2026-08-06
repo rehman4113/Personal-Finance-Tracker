@@ -29,11 +29,16 @@ public class TransactionResponse {
     private BigDecimal totalAmount;
     private String description;
     private String personName;
+    private Long loanUserId;
+    private String loanUserName;
     private LocalDateTime transactionDate;
     private String referenceNumber;
     private String notes;
     private Long attachmentId;
     private List<WalletEntryResponse> walletEntries;
+
+    @Schema(description = "Alias of walletEntries, kept for readability")
+    private List<WalletEntryResponse> walletSplits;
     private LocalDateTime createdAt;
 
     @Getter
@@ -44,8 +49,14 @@ public class TransactionResponse {
     public static class WalletEntryResponse {
         private Long transactionId;
         private Long walletId;
+        private String walletName;
+        private String walletTypeCode;
+        private String walletTypeName;
+        private String currency;
         private Long sourceWalletId;
+        private String sourceWalletName;
         private Long destinationWalletId;
+        private String destinationWalletName;
         private BigDecimal amount;
         private String merchant;
     }

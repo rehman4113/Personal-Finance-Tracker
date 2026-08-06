@@ -33,23 +33,12 @@ public class LoanHistoryServiceImpl implements LoanHistoryService {
         }
 
         List<LoanUser> existingUsers = loanUserRepository.findByUserIdAndFullName(userId, personName.trim());
-        LoanUser loanUser;
-
         if (existingUsers.isEmpty()) {
-            String uniqueKey = generateUniqueKey(userId, personName.trim(), "");
-            loanUser = LoanUser.builder()
-                    .userId(userId)
-                    .fullName(personName.trim())
-                    .contactNumber("")
-                    .uniqueKey(uniqueKey)
-                    .currentAmount(BigDecimal.ZERO)
-                    .loanStatus("CLOSED")
-                    .build();
-            loanUser = loanUserRepository.save(loanUser);
-            log.info("Auto-created loan user: id={}, name={}", loanUser.getId(), personName);
-        } else {
-            loanUser = existingUsers.get(0);
+            throw new BusinessException(ErrorCode.LOAN_USER_NOT_FOUND,
+                    "Loan user not found: \"" + personName.trim()
+                            + "\". Create the loan user before recording the loan transaction.");
         }
+        LoanUser loanUser = existingUsers.get(0);
 
         BigDecimal transactionAmount = details.getAmount();
         BigDecimal currentAmount = loanUser.getCurrentAmount();
@@ -120,15 +109,9 @@ public class LoanHistoryServiceImpl implements LoanHistoryService {
             throw new BusinessException(ErrorCode.ACCESS_DENIED);
         }
 
-        return loanHistoryRepository.findByLoanUserId(loanUserId).stream()
+        return loanHistoryRepository.findByLoanUserIdOrderByCreatedAtDesc(loanUserId).stream()
                 .map(this::toResponse)
                 .toList();
-    }
-
-    private String generateUniqueKey(Long userId, String fullName, String contactNumber) {
-        String name = fullName != null ? fullName.trim().toUpperCase().replaceAll("\\s+", "_") : "";
-        String contact = contactNumber != null ? contactNumber.trim() : "";
-        return userId + "_" + name + "_" + contact;
     }
 
     private LoanHistoryResponse toResponse(LoanHistory history) {

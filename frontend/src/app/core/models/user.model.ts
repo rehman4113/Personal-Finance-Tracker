@@ -7,6 +7,9 @@ export interface User {
   firstName: string;
   lastName: string;
   email: string;
+  contact: string;
   status: string;
   emailVerified: boolean;
+  /** True once the user has finished the onboarding demo tour. */
+  demo: boolean;
 }

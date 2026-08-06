@@ -19,16 +19,20 @@
 #   JWT_SECRET    – JWT signing secret     (default: none — REQUIRED in prod)
 #   JWT_ACCESS_EXPIRATION_MS    – access token expiry  (default: 900000)
 #   JWT_REFRESH_EXPIRATION_MS   – refresh token expiry (default: 604800000)
+#   BREVO_API_KEY     – Brevo Transactional Email API key (REQUIRED)
+#   MAIL_FROM_ADDRESS – verified Brevo sender email     (REQUIRED)
+#   MAIL_FROM_NAME    – sender display name             (default: Personal Finance Tracker)
 #
 # NOTE ON RENDER + SUPABASE:
 #   Point DB_URL/DB_USERNAME/DB_PASSWORD at the Supabase Postgres instance
 #   (host/port/user/password shown in Supabase Dashboard → Project Settings →
 #   Database). Render will also inject PORT automatically at deploy time.
 #
-# NOTE ON MAIL (Brevo SMTP):
-#   MAIL_USERNAME / MAIL_PASSWORD / MAIL_FROM_ADDRESS are REQUIRED — the app
-#   will fail to start if unset. MAIL_HOST / MAIL_PORT / MAIL_FROM_NAME have
-#   defaults and may be omitted.
+# NOTE ON MAIL (Brevo Transactional Email HTTP API):
+#   Emails are sent via https://api.brevo.com/v3/smtp/email using Spring's
+#   RestClient — no SMTP (Render's free tier blocks outbound SMTP ports).
+#   BREVO_API_KEY and MAIL_FROM_ADDRESS are REQUIRED — the app will fail to
+#   start if unset. MAIL_FROM_NAME has a default and may be omitted.
 #
 # NOTE ON CORS:
 #   Allowed origins are externalized via APP_CORS_ORIGINS (comma-separated),
@@ -67,19 +71,6 @@ spring:
     # DDL_AUTO=validate on Render once Flyway has created the schema.
     validate-on-migrate: true
 
-  # Brevo SMTP — values injected from Render env vars (see header comment).
-  mail:
-    host: ${MAIL_HOST:smtp-relay.brevo.com}
-    port: ${MAIL_PORT:587}
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-
 springdoc:
   api-docs:
     enabled: true
@@ -105,5 +96,6 @@ app:
   cors:
     allowed-origins: ${APP_CORS_ORIGINS:http://localhost:4200}
   mail:
+    brevo-api-key: ${BREVO_API_KEY}
     from-address: ${MAIL_FROM_ADDRESS}
     from-name: ${MAIL_FROM_NAME:Personal Finance Tracker}

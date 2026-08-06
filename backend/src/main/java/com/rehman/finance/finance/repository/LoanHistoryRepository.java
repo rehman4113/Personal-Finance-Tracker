@@ -8,5 +8,7 @@ import java.util.List;
 public interface LoanHistoryRepository extends JpaRepository<LoanHistory, Long> {
     List<LoanHistory> findByLoanUserId(Long loanUserId);
 
+    List<LoanHistory> findByLoanUserIdOrderByCreatedAtDesc(Long loanUserId);
+
     List<LoanHistory> findByTransactionHistoryId(Long transactionHistoryId);
 }

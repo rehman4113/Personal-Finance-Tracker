@@ -1,30 +1,36 @@
 package com.rehman.finance.auth.service;
 
-import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
+
+import java.util.List;
+import java.util.Map;
 
 /**
- * Sends OTP emails over SMTP (Brevo). Throws on failure — the caller
- * (EmailOutboxScheduler) is responsible for catching and updating the
- * outbox row status. The OTP code is never logged.
+ * Sends OTP emails via Brevo's Transactional Email HTTP API
+ * (POST https://api.brevo.com/v3/smtp/email) using Spring's RestClient —
+ * Render's free tier blocks outbound SMTP ports. Throws on failure — the
+ * caller (EmailOutboxScheduler) is responsible for catching and updating
+ * the outbox row status. The OTP code and the Brevo API key are never logged.
  */
 @Slf4j
 @Service
 public class EmailSenderService {
 
-    private final JavaMailSender mailSender;
+    private final RestClient brevoRestClient;
+    private final String apiKey;
     private final String fromAddress;
     private final String fromName;
 
     public EmailSenderService(
-            JavaMailSender mailSender,
+            RestClient brevoRestClient,
+            @Value("${app.mail.brevo-api-key}") String apiKey,
             @Value("${app.mail.from-address}") String fromAddress,
             @Value("${app.mail.from-name}") String fromName) {
-        this.mailSender = mailSender;
+        this.brevoRestClient = brevoRestClient;
+        this.apiKey = apiKey;
         this.fromAddress = fromAddress;
         this.fromName = fromName;
     }
@@ -36,17 +42,21 @@ public class EmailSenderService {
             default -> "Your verification code — Personal Finance Tracker";
         };
 
-        MimeMessage message = mailSender.createMimeMessage();
-        try {
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setFrom(fromAddress, fromName);
-            helper.setTo(toEmail);
-            helper.setSubject(subject);
-            helper.setText(buildBody(type, otpCode), true);
-        } catch (Exception e) {
-            throw new IllegalStateException("Failed to build OTP email for " + toEmail, e);
-        }
-        mailSender.send(message);
+        Map<String, Object> requestBody = Map.of(
+                "sender", Map.of("name", fromName, "email", fromAddress),
+                "to", List.of(Map.of("email", toEmail)),
+                "subject", subject,
+                "htmlContent", buildBody(type, otpCode)
+        );
+
+        // Non-2xx responses throw here (RestClientResponseException /
+        // ResourceAccessException) — the scheduler catches and records them.
+        brevoRestClient.post()
+                .uri("/v3/smtp/email")
+                .header("api-key", apiKey)
+                .body(requestBody)
+                .retrieve()
+                .toBodilessEntity();
         log.info("OTP email sent to user email={}, type={}", toEmail, type);
     }
 

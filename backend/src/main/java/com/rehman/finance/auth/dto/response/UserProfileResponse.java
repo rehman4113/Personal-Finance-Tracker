@@ -20,4 +20,5 @@ public class UserProfileResponse {
     private String contact;
     private String status;
     private boolean emailVerified;
+    private boolean demo;
 }

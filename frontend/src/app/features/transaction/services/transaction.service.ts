@@ -55,8 +55,9 @@ export class TransactionService {
   // Master data
   // ------------------------------------------------------------------
 
-  loadMasterData(): void {
-    if (this._masterData()) return;
+  /** Loads master data once unless force=true (used to refresh after dropdown creates). */
+  loadMasterData(force = false): void {
+    if (!force && this._masterData()) return;
     this.http
       .get<ApiResponse<MasterDataDto>>(`${this.baseUrl}${TRANSACTION_API.MASTER}`)
       .pipe(
@@ -286,7 +287,8 @@ export class TransactionService {
         map((res) => {
           if (res.success && res.data) {
             this.toast.success(res.message || 'Purpose created');
-            this.addPurposeToMaster(res.data!);
+            // Rule: after a create POST, fetch the GET list so the dropdown stays fresh.
+            this.loadMasterData(true);
           }
           return res.data!;
         }),
@@ -294,16 +296,13 @@ export class TransactionService {
       );
   }
 
-  /** Soft-deletes a user purpose and removes it from master data in place. */
+  /** Soft-deletes a user purpose and refreshes master data in place. */
   deletePurpose(id: number): Observable<void> {
     return this.http.delete<ApiResponse<void>>(`${this.baseUrl}${TRANSACTION_API.purpose(id)}`).pipe(
       map((res) => {
         if (res.success) {
           this.toast.success(res.message || 'Purpose deleted');
-          this.updateMaster((m) => ({
-            ...m,
-            transactionPurposes: m.transactionPurposes.filter((p) => p.id !== id),
-          }));
+          this.loadMasterData(true);
         }
         return undefined;
       }),
@@ -325,12 +324,8 @@ export class TransactionService {
         map((res) => {
           if (res.success && res.data) {
             this.toast.success(res.message || 'Sub-category created');
-            this.updateMaster((m) => ({
-              ...m,
-              transactionPurposes: m.transactionPurposes.map((p) =>
-                p.id === purposeId ? { ...p, subcategories: [...p.subcategories, res.data!] } : p,
-              ),
-            }));
+            // Rule: after a create POST, fetch the GET list so the dropdown stays fresh.
+            this.loadMasterData(true);
           }
           return res.data!;
         }),
@@ -338,7 +333,7 @@ export class TransactionService {
       );
   }
 
-  /** Soft-deletes a user subcategory and removes it from master data in place. */
+  /** Soft-deletes a user subcategory and refreshes master data. */
   deleteSubcategory(id: number): Observable<void> {
     return this.http
       .delete<ApiResponse<void>>(`${this.baseUrl}${TRANSACTION_API.subcategory(id)}`)
@@ -346,13 +341,7 @@ export class TransactionService {
         map((res) => {
           if (res.success) {
             this.toast.success(res.message || 'Sub-category deleted');
-            this.updateMaster((m) => ({
-              ...m,
-              transactionPurposes: m.transactionPurposes.map((p) => ({
-                ...p,
-                subcategories: p.subcategories.filter((s) => s.id !== id),
-              })),
-            }));
+            this.loadMasterData(true);
           }
           return undefined;
         }),
@@ -365,16 +354,7 @@ export class TransactionService {
     const master = this._masterData();
     if (!master) return;
     this._masterData.set(updater(master));
-  }
-
-  private addPurposeToMaster(item: PurposeCreatedItem): void {
-    this.updateMaster((m) => ({
-      ...m,
-      transactionPurposes: [...m.transactionPurposes, { ...item, subcategories: [] }],
-    }));
-  }
-
-  // ------------------------------------------------------------------
+  }  // ------------------------------------------------------------------
   // Transactions
   // ------------------------------------------------------------------
 

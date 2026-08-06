@@ -1,30 +1,34 @@
 import { Component, inject } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { AuthIllustrationPanelComponent } from '../../../shared/components/auth-illustration-panel/auth-illustration-panel.component';
+import { BackgroundAnimationComponent } from '../../../shared/components/background-animation/background-animation.component';
 import { routeTransition } from '../../../shared/animations/route.animations';
 import { MotionState } from '../../../shared/services/motion-state.service';
 
 /**
  * Full-screen background + floating card auth shell (per §27):
- * the illustration panel covers the whole viewport (fixed) and the
- * login/register card floats centered on top. Pages only fill the
- * router-outlet. Presentation pass: glassmorphism card + smooth
- * login/register route transitions (respects reduced-motion).
+ * the canvas ambient animation + illustration panel cover the whole
+ * viewport (fixed) and the login/register card floats centered on top.
+ * Pages only fill the router-outlet. Presentation pass: glassmorphism
+ * card + smooth login/register route transitions (respects reduced-motion).
  */
 @Component({
   selector: 'app-auth-layout',
   standalone: true,
-  imports: [RouterOutlet, AuthIllustrationPanelComponent],
+  imports: [RouterOutlet, AuthIllustrationPanelComponent, BackgroundAnimationComponent],
   animations: [routeTransition],
   template: `
     <div class="auth-layout">
+      <app-background-animation class="auth-layout__background" />
       <app-auth-illustration-panel class="auth-layout__background" />
       <div class="auth-layout__center">
-        <div class="auth-layout__card pfm-glass">
-          <div class="auth-layout__brand">
-            <i class="bi bi-wallet2"></i>
-            <span>Personal Finance</span>
-          </div>
+      <div class="auth-layout__card">
+        <div class="auth-layout__brand">
+          <span class="auth-layout__brand-mark">
+            <i class="bi bi-wallet2" aria-hidden="true"></i>
+          </span>
+          <span class="auth-layout__brand-name">Personal Finance</span>
+        </div>
           <div
             class="auth-layout__content"
             [@routeTransition]="router.url"

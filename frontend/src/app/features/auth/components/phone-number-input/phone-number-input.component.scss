@@ -1,5 +1,20 @@
-.phone-prefix {
+.lux-prefix {
+  position: absolute;
+  left: 2.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
   font-weight: 500;
-  min-width: 4rem;
-  justify-content: center;
+  font-size: 0.95rem;
+  color: var(--pfm-text-muted);
+  pointer-events: none;
+}
+
+/* Shift padding + labels right so the icon + prefix have room. */
+.phone-number-input .lux-field__input {
+  padding-left: 5.6rem;
+}
+
+.phone-number-input .lux-field__label {
+  left: 5.6rem;
 }

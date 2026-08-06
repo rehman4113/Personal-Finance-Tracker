@@ -45,6 +45,10 @@ public class User {
     @Builder.Default
     private Boolean emailVerified = false;
 
+    @Column(name = "demo")
+    @Builder.Default
+    private Boolean demo = false;
+
     @Column(length = 6)
     private String otp;
 

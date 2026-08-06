@@ -1,3 +1,53 @@
 :host {
   display: block;
 }
+
+.auth-switch {
+  color: var(--pfm-text-muted);
+
+  .lux-link {
+    font-weight: 600;
+  }
+}
+
+.lux-clickable {
+  cursor: pointer;
+}
+
+/* Static label for the OTP boxes (matches .country-code-dropdown label style). */
+.lux-otp-label {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--pfm-panel-accent);
+  margin-bottom: 0.6rem;
+}
+
+/* Resend link — enabled now that POST /api/v1/auth/resend-otp exists. */
+.lux-resend {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--pfm-panel-accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s ease;
+
+  &:hover:not(:disabled) {
+    color: var(--pfm-primary-light);
+    text-decoration: underline;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.lux-resend-wait {
+  color: var(--pfm-text-faint);
+  font-size: 0.82rem;
+}

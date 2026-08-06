@@ -2,4 +2,6 @@
 export interface CountryCodeOption {
   country: string;
   dialingCode: string;
+  /** Flag emoji shown next to the dialing code in the unified phone field. */
+  flag: string;
 }

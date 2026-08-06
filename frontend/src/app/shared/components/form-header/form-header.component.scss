@@ -6,20 +6,30 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: var(--pfm-primary-tint);
+  background: linear-gradient(160deg, rgba(240, 192, 79, 0.16), rgba(240, 192, 79, 0.05));
+  border: 1px solid rgba(240, 192, 79, 0.35);
+  box-shadow:
+    0 0 24px rgba(240, 192, 79, 0.18),
+    inset 0 0 18px rgba(240, 192, 79, 0.06);
 
   .bi {
-    font-size: 1.35rem;
+    font-size: 1.45rem;
     color: var(--pfm-primary-icon);
   }
 }
 
 .form-header__title {
   font-size: var(--pfm-heading-size);
-  font-weight: 600;
+  font-weight: 800;
+  letter-spacing: -0.02em;
   color: var(--pfm-text-primary);
+  background: linear-gradient(180deg, #ffffff, #c9d6ea);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .form-header__subtitle {
   font-size: var(--pfm-subtext-size);
+  color: var(--pfm-text-muted);
 }

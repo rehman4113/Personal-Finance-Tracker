@@ -22,8 +22,14 @@ public class TransactionDetailResponse {
     private Long transactionHistoryId;
     private Long userId;
     private Long walletId;
+    private String walletName;
+    private String walletTypeCode;
+    private String walletTypeName;
+    private String currency;
     private Long sourceWalletId;
+    private String sourceWalletName;
     private Long destinationWalletId;
+    private String destinationWalletName;
     private BigDecimal amount;
     private String merchant;
     private LocalDateTime createdAt;

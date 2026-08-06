@@ -1,35 +1,22 @@
 import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { FormHeaderComponent } from '../../../../shared/components/form-header/form-header.component';
-import { AUTH_ROUTES } from '../../constants/auth.constants';
+import { ForgotPasswordFlowComponent } from '../../components/forgot-password-flow/forgot-password-flow.component';
 
 /**
- * Forgot-password placeholder — Section 8 / §8.
- * WHY: The task allows a link-only route; no backend API exists for password
- * reset, so this stub explains that clearly instead of 404ing.
+ * Forgot-password page — auth-card wrapper around the shared two-step flow.
+ * Step state (email -> OTP + new password) lives inside the flow component.
  */
 @Component({
   selector: 'app-forgot-password-page',
   standalone: true,
-  imports: [RouterLink, FormHeaderComponent],
+  imports: [FormHeaderComponent, ForgotPasswordFlowComponent],
   template: `
     <app-form-header
-      title="Forgot Password"
-      subtitle="Password reset is not available in this module yet"
+      title="Forgot Password?"
+      subtitle="Enter your email and we'll send you a reset code"
       icon="bi-key"
     />
-    <div class="alert alert-info d-flex align-items-center" role="alert">
-      <i class="bi bi-info-circle me-2"></i>
-      <div>
-        No backend API exists for password reset in the current scope.
-        Please contact support.
-      </div>
-    </div>
-    <a [routerLink]="routes.LOGIN" class="btn btn-outline-primary btn-lg w-100">
-      <i class="bi bi-arrow-left me-2"></i>Back to Login
-    </a>
+    <app-forgot-password-flow />
   `,
 })
-export class ForgotPasswordPage {
-  readonly routes = AUTH_ROUTES;
-}
+export class ForgotPasswordPage {}

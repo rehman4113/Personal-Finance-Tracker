@@ -5,8 +5,14 @@
 export interface TransactionWalletEntryDto {
   transactionId?: number;
   walletId?: number | null;
+  walletName?: string | null;
+  walletTypeCode?: string | null;
+  walletTypeName?: string | null;
+  currency?: string | null;
   sourceWalletId?: number | null;
+  sourceWalletName?: string | null;
   destinationWalletId?: number | null;
+  destinationWalletName?: string | null;
   amount: number;
   merchant?: string | null;
 }
@@ -22,11 +28,18 @@ export interface TransactionDto {
   totalAmount: number;
   description?: string | null;
   personName?: string | null;
+
+  /** Loan user linked to a LOAN transaction (by ID), with its current name. */
+  loanUserId?: number | null;
+  loanUserName?: string | null;
   transactionDate: string;
   referenceNumber?: string | null;
   notes?: string | null;
   attachmentId?: number | null;
   walletEntries?: TransactionWalletEntryDto[];
+
+  /** Alias of walletEntries (backend returns both). */
+  walletSplits?: TransactionWalletEntryDto[];
   createdAt?: string;
 
   /** Convenience projections mirrored from the first wallet entry (§13.3). */
@@ -57,5 +70,7 @@ export interface CreateTransactionRequest {
   referenceNumber?: string;
   notes?: string;
   personName?: string;
+  /** LOAN only: link the transaction to an existing loan user by ID. */
+  loanUserId?: number;
   walletEntries: TransactionWalletEntryRequest[];
 }

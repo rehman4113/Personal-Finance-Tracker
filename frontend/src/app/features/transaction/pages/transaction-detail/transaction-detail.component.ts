@@ -36,10 +36,10 @@ import { purposeDisplay, isOutflowTransaction } from '../../config/transaction-t
               <div class="detail__label small text-muted">Wallets</div>
               <div class="detail__value">{{ walletsLabel(t) }}</div>
             </div>
-            @if (t.personName) {
+            @if (t.personName || t.loanUserName) {
               <div class="col-sm-6">
                 <div class="detail__label small text-muted">Person</div>
-                <div class="detail__value">{{ t.personName }}</div>
+                <div class="detail__value">{{ t.loanUserName || t.personName }}</div>
               </div>
             }
             @if (t.merchant) {
@@ -130,7 +130,7 @@ export class TransactionDetailComponent {
     });
   }
 
-  /** Signed numeric amount (outflows negative) â€” drives the count-up. */
+  /** Signed numeric amount (outflows negative) — drives the count-up. */
   amountValue(t: TransactionDto): number {
     const amount = Math.abs(t.totalAmount ?? 0);
     return isOutflowTransaction(t) ? -amount : amount;
@@ -155,15 +155,16 @@ export class TransactionDetailComponent {
   }
 
   entryName(entry: TransactionWalletEntryDto): string {
+    const name = entry.walletName ?? entry.sourceWalletName ?? entry.destinationWalletName;
+    if (name) return name;
     const id = entry.walletId ?? entry.sourceWalletId ?? entry.destinationWalletId;
     return this.service.walletName(id);
   }
 
   walletsLabel(t: TransactionDto): string {
     const entries = t.walletEntries ?? [];
-    const ids = entries.filter((e) => e.sourceWalletId || e.destinationWalletId);
-    if (ids.length) return this.entryName(ids[0]);
-    return this.service.walletName(entries[0]?.walletId);
+    const names = entries.map((e) => this.entryName(e));
+    return [...new Set(names)].join(', ');
   }
 
   typeBadgeClass(t: TransactionDto): string {

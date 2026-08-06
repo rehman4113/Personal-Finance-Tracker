@@ -1,9 +1,16 @@
 -- ============================================================
--- System seeder (migration-time): all reference data required by
+-- System seeder (migration-time): ALL reference data required by
 -- the transaction engine. Transaction types, statuses, the
 -- WALLET_TRANSFER purpose, the LOAN purpose and its
 -- RECEIVABLE/PAYABLE loan-direction subcategories are seeded as
 -- SYSTEM rows (user_id = NULL) and are globally shared.
+--
+-- Also seeds the shared INCOME/EXPENSE purposes + subcategories
+-- (formerly part of the squashed V3) so every user starts with
+-- the same basic categories out of the box. ON CONFLICT (code)
+-- DO NOTHING keeps the inserts safe even if the same rows were
+-- already created manually.
+--
 -- Wallet types and other purposes/subcategories are user-created
 -- via the creatable dropdowns (no seed rows).
 -- ============================================================
@@ -54,3 +61,46 @@ FROM (VALUES
     ('PAYABLE',    'Payable',    'Loan taken from someone — you owe them')
 ) AS s("code", "name", "description")
 JOIN "pf_fi_transaction_purpose" p ON p."code" = 'LOAN';
+
+-- ============================================================
+-- Shared user-facing categories (global, system-owned)
+-- ------------------------------------------------------------
+-- A small set of INCOME/EXPENSE purposes and subcategories every
+-- user starts with out of the box.
+-- ============================================================
+
+-- 4 INCOME purposes
+INSERT INTO "pf_fi_transaction_purpose" ("transaction_type_id", "user_id", "code", "name", "description", "active")
+SELECT tt."id", NULL, p."code", p."name", p."description", true
+FROM (VALUES
+    ('SALARY',      'Salary',      'Regular salary or wage income'),
+    ('FREELANCE',   'Freelance',   'Income from freelance or gig work'),
+    ('BUSINESS',    'Business',    'Income from a business or side venture'),
+    ('INVESTMENT',  'Investment',  'Income from investments, dividends, interest')
+) AS p("code", "name", "description")
+JOIN "pf_fi_transaction_type" tt ON tt."code" = 'INCOME'
+ON CONFLICT ("code") DO NOTHING;
+
+-- 4 EXPENSE purposes
+INSERT INTO "pf_fi_transaction_purpose" ("transaction_type_id", "user_id", "code", "name", "description", "active")
+SELECT tt."id", NULL, p."code", p."name", p."description", true
+FROM (VALUES
+    ('GROCERIES',   'Groceries',   'Food and household groceries'),
+    ('HOUSING',     'Housing',     'Rent, mortgage and home maintenance'),
+    ('TRANSPORT',   'Transport',   'Fuel, public transport and travel'),
+    ('UTILITIES',   'Utilities',   'Electricity, water, internet and phone bills')
+) AS p("code", "name", "description")
+JOIN "pf_fi_transaction_type" tt ON tt."code" = 'EXPENSE'
+ON CONFLICT ("code") DO NOTHING;
+
+-- 4 subcategories: 2 for SALARY (income), 2 for HOUSING (expense)
+INSERT INTO "pf_fi_transaction_subcategory" ("transaction_purpose_id", "user_id", "code", "name", "description", "active")
+SELECT pr."id", NULL, s."code", s."name", s."description", true
+FROM (VALUES
+    ('MONTHLY_SALARY',  'Monthly Salary',  'Regular monthly pay',      'SALARY'),
+    ('BONUS',           'Bonus',           'Bonus or incentive pay',   'SALARY'),
+    ('RENT',            'Rent',            'Monthly rent payment',     'HOUSING'),
+    ('MAINTENANCE',     'Maintenance',     'Home repairs and upkeep',  'HOUSING')
+) AS s("code", "name", "description", "purpose_code")
+JOIN "pf_fi_transaction_purpose" pr ON pr."code" = s."purpose_code"
+ON CONFLICT ("code") DO NOTHING;

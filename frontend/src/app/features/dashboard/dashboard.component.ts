@@ -13,7 +13,6 @@ import {
   amountCellClass,
   purposeDisplay,
 } from '../transaction/config/transaction-table.config';
-import { FINANCE_ROUTES } from '../../core/constants/finance-routes.constants';
 import { staggerIn } from '../../shared/animations/stagger.animations';
 import { CountUpDirective } from '../../shared/directives/count-up.directive';
 
@@ -25,7 +24,7 @@ import { CountUpDirective } from '../../shared/directives/count-up.directive';
   styleUrl: './dashboard.component.scss',
   template: `
     <div class="container-fluid py-4">
-      <app-page-header title="Dashboard" subtitle="Your money at a glance â€” {{ month() }}" icon="bi-speedometer2">
+      <app-page-header title="Dashboard" subtitle="Your money at a glance — {{ month() }}" icon="bi-speedometer2">
         <button type="button" class="btn btn-primary-gradient" routerLink="/transactions/create">
           <i class="bi bi-plus-lg me-1"></i>New Transaction
         </button>
@@ -69,7 +68,7 @@ import { CountUpDirective } from '../../shared/directives/count-up.directive';
           <div class="col-lg-8">
             <div class="card border-0 shadow-sm h-100">
               <div class="card-header bg-transparent pt-4 px-4">
-                <h6 class="mb-0 fw-semibold">Budget Status â€” {{ month() }}</h6>
+                <h6 class="mb-0 fw-semibold">Budget Status — {{ month() }}</h6>
               </div>
               <div class="card-body px-4">
                 @if (budgets().length === 0) {
@@ -178,21 +177,6 @@ import { CountUpDirective } from '../../shared/directives/count-up.directive';
             </div>
           </div>
         </div>
-
-        <div class="row g-4 mt-1" [@staggerIn]>
-          @for (action of quickActions; track action.label) {
-            <div class="col-6 col-md-3">
-              <button
-                type="button"
-                class="btn btn-outline-primary w-100 py-3 d-flex flex-column align-items-center gap-1 pfm-quick-action"
-                routerLink="{{ action.path }}"
-              >
-                <i class="bi fs-4" [class]="action.icon"></i>
-                <span>{{ action.label }}</span>
-              </button>
-            </div>
-          }
-        </div>
       }
     </div>
   `,
@@ -205,14 +189,7 @@ export class DashboardComponent implements OnInit {
 
   readonly skeletonStatCards = [1, 2, 3, 4];
 
-  readonly quickActions = [
-    { label: 'Add Income', path: FINANCE_ROUTES.CREATE_TRANSACTION, icon: 'bi-arrow-down-circle' },
-    { label: 'Add Expense', path: FINANCE_ROUTES.CREATE_TRANSACTION, icon: 'bi-arrow-up-circle' },
-    { label: 'Wallet Transfer', path: FINANCE_ROUTES.CREATE_TRANSACTION, icon: 'bi-arrow-left-right' },
-    { label: 'New Loan', path: FINANCE_ROUTES.CREATE_TRANSACTION, icon: 'bi-cash-coin' },
-  ];
-
-  /** Last 6 months (including current) of income/expense â€” feeds sparklines. */
+  /** Last 6 months (including current) of income/expense — feeds sparklines. */
   readonly series = computed(() => {
     const txs = this.service.transactions() ?? [];
     const buckets = new Map<string, { income: number; expense: number }>();
@@ -281,7 +258,7 @@ export class DashboardComponent implements OnInit {
         numericValue: savings,
         icon: 'bi-piggy-bank',
         tone: (savings < 0 ? 'danger' : 'info') as SummaryTone,
-        hint: 'Income âˆ’ Expense',
+        hint: 'Income – Expense',
         trend: s.savings,
       },
     ];

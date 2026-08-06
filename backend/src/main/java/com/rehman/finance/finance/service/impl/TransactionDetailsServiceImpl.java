@@ -163,13 +163,22 @@ public class TransactionDetailsServiceImpl implements TransactionDetailsService 
     }
 
     private TransactionDetailResponse toResponse(TransactionDetails details) {
+        Wallet wallet = details.getWallet();
+        Wallet source = details.getSourceWallet();
+        Wallet destination = details.getDestinationWallet();
         return TransactionDetailResponse.builder()
                 .id(details.getId())
                 .transactionHistoryId(details.getTransactionHistory().getId())
                 .userId(details.getUserId())
-                .walletId(details.getWallet() != null ? details.getWallet().getId() : null)
-                .sourceWalletId(details.getSourceWallet() != null ? details.getSourceWallet().getId() : null)
-                .destinationWalletId(details.getDestinationWallet() != null ? details.getDestinationWallet().getId() : null)
+                .walletId(wallet != null ? wallet.getId() : null)
+                .walletName(wallet != null ? wallet.getWalletName() : null)
+                .walletTypeCode(wallet != null ? wallet.getWalletType().getCode() : null)
+                .walletTypeName(wallet != null ? wallet.getWalletType().getName() : null)
+                .currency(wallet != null ? wallet.getCurrency() : null)
+                .sourceWalletId(source != null ? source.getId() : null)
+                .sourceWalletName(source != null ? source.getWalletName() : null)
+                .destinationWalletId(destination != null ? destination.getId() : null)
+                .destinationWalletName(destination != null ? destination.getWalletName() : null)
                 .amount(details.getAmount())
                 .merchant(details.getMerchant())
                 .createdAt(details.getCreatedAt())

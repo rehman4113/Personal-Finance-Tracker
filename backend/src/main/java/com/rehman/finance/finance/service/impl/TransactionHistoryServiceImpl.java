@@ -32,6 +32,7 @@ public class TransactionHistoryServiceImpl implements TransactionHistoryService 
     private final WalletRepository walletRepository;
     private final ReceiptAttachmentRepository receiptAttachmentRepository;
     private final LedgerEntryRepository ledgerEntryRepository;
+    private final LoanUserRepository loanUserRepository;
     private final TransactionDetailsService transactionDetailsService;
     private final LoanHistoryService loanHistoryService;
 
@@ -72,7 +73,7 @@ public class TransactionHistoryServiceImpl implements TransactionHistoryService 
 
         validateWalletEntries(userId, request.getWalletEntries(), typeCode, request.getTotalAmount(), subcategoryCode);
 
-        TransactionHistory history = TransactionHistory.builder()
+        TransactionHistory.TransactionHistoryBuilder buildHistoryBuilder = TransactionHistory.builder()
                 .userId(userId)
                 .totalAmount(request.getTotalAmount())
                 .description(request.getDescription())
@@ -84,9 +85,17 @@ public class TransactionHistoryServiceImpl implements TransactionHistoryService 
                 .transactionDate(request.getTransactionDate())
                 .referenceNumber(request.getReferenceNumber())
                 .notes(request.getNotes())
-                .attachment(attachment)
-                .build();
-        history = transactionHistoryRepository.save(history);
+                .attachment(attachment);
+
+        if ("LOAN".equals(typeCode) && request.getLoanUserId() != null) {
+            LoanUser loanUser = loanUserRepository.findByUserIdAndId(userId, request.getLoanUserId())
+                    .orElseThrow(() -> new BusinessException(ErrorCode.LOAN_USER_NOT_FOUND));
+            buildHistoryBuilder.loanUserId(loanUser.getId());
+            buildHistoryBuilder.loanUserUniqueKey(loanUser.getUniqueKey());
+            buildHistoryBuilder.personName(loanUser.getFullName());
+        }
+
+        TransactionHistory history = transactionHistoryRepository.save(buildHistoryBuilder.build());
 
         List<TransactionDetails> detailsList = transactionDetailsService.createTransactionDetails(
                 userId, history, typeCode, request.getWalletEntries());
@@ -182,7 +191,7 @@ public class TransactionHistoryServiceImpl implements TransactionHistoryService 
     @Override
     @Transactional(readOnly = true)
     public List<TransactionResponse> getUserTransactions(Long userId) {
-        return transactionHistoryRepository.findByUserId(userId).stream()
+        return transactionHistoryRepository.findByUserIdOrderByTransactionDateDescIdDesc(userId).stream()
                 .map(history -> {
                     List<TransactionDetails> detailsList = transactionDetailsRepository.findByTransactionHistoryId(history.getId());
                     return toResponse(history, detailsList);
@@ -209,14 +218,7 @@ public class TransactionHistoryServiceImpl implements TransactionHistoryService 
 
     private TransactionResponse toResponse(TransactionHistory history, List<TransactionDetails> detailsList) {
         List<TransactionResponse.WalletEntryResponse> walletEntries = detailsList.stream()
-                .map(t -> TransactionResponse.WalletEntryResponse.builder()
-                        .transactionId(t.getId())
-                        .walletId(t.getWallet() != null ? t.getWallet().getId() : null)
-                        .sourceWalletId(t.getSourceWallet() != null ? t.getSourceWallet().getId() : null)
-                        .destinationWalletId(t.getDestinationWallet() != null ? t.getDestinationWallet().getId() : null)
-                        .amount(t.getAmount())
-                        .merchant(t.getMerchant())
-                        .build())
+                .map(this::toWalletEntryResponse)
                 .toList();
 
         return TransactionResponse.builder()
@@ -230,12 +232,47 @@ public class TransactionHistoryServiceImpl implements TransactionHistoryService 
                 .totalAmount(history.getTotalAmount())
                 .description(history.getDescription())
                 .personName(history.getPersonName())
+                .loanUserId(history.getLoanUserId())
+                .loanUserName(resolveLoanUserName(history))
                 .transactionDate(history.getTransactionDate())
                 .referenceNumber(history.getReferenceNumber())
                 .notes(history.getNotes())
                 .attachmentId(history.getAttachment() != null ? history.getAttachment().getId() : null)
                 .walletEntries(walletEntries)
+                .walletSplits(walletEntries)
                 .createdAt(history.getCreatedAt())
+                .build();
+    }
+
+    /**
+     * Resolves the loan user's current name by (owner userId, loan user id, loan user unique key) —
+     * the triple that uniquely identifies the loan relationship even if names collide.
+     */
+    private String resolveLoanUserName(TransactionHistory history) {
+        if (history.getLoanUserId() == null) return null;
+        return loanUserRepository
+                .findByUserIdAndIdAndUniqueKey(history.getUserId(), history.getLoanUserId(), history.getLoanUserUniqueKey())
+                .map(LoanUser::getFullName)
+                .orElse(null);
+    }
+
+    private TransactionResponse.WalletEntryResponse toWalletEntryResponse(TransactionDetails detail) {
+        Wallet wallet = detail.getWallet();
+        Wallet source = detail.getSourceWallet();
+        Wallet destination = detail.getDestinationWallet();
+        return TransactionResponse.WalletEntryResponse.builder()
+                .transactionId(detail.getId())
+                .walletId(wallet != null ? wallet.getId() : null)
+                .walletName(wallet != null ? wallet.getWalletName() : null)
+                .walletTypeCode(wallet != null ? wallet.getWalletType().getCode() : null)
+                .walletTypeName(wallet != null ? wallet.getWalletType().getName() : null)
+                .currency(wallet != null ? wallet.getCurrency() : null)
+                .sourceWalletId(source != null ? source.getId() : null)
+                .sourceWalletName(source != null ? source.getWalletName() : null)
+                .destinationWalletId(destination != null ? destination.getId() : null)
+                .destinationWalletName(destination != null ? destination.getWalletName() : null)
+                .amount(detail.getAmount())
+                .merchant(detail.getMerchant())
                 .build();
     }
 

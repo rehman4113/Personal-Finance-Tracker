@@ -66,6 +66,13 @@ public class TransactionHistory {
     @JoinColumn(name = "attachment_id")
     private ReceiptAttachment attachment;
 
+    @Column(name = "loan_user_id")
+    private Long loanUserId;
+
+    /** Snapshot of the loan user's unique key (userId + name + contact) for identity-safe resolution. */
+    @Column(name = "loan_user_unique_key", length = 255)
+    private String loanUserUniqueKey;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

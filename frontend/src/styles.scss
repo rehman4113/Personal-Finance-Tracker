@@ -71,7 +71,7 @@
 }
 
 body {
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   background-color: var(--pfm-bg-gradient-start);
   color: #212529;
 }
@@ -420,4 +420,342 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* ======================================================================
+   LUXURY AUTH THEME PRIMITIVES — dark glassmorphism (Login / Register /
+   Forgot password). Scoped to .auth-layout so the app shell is untouched.
+   ====================================================================== */
+.auth-layout {
+  .text-muted {
+    color: var(--pfm-text-muted) !important;
+  }
+
+  /* ---------- Alerts ---------- */
+  .alert {
+    border-radius: 12px;
+    border-width: 1px;
+  }
+
+  .alert-danger {
+    background: rgba(248, 113, 113, 0.1);
+    border-color: rgba(248, 113, 113, 0.32);
+    color: #fda4af;
+  }
+
+  .alert-info {
+    background: rgba(56, 189, 248, 0.1);
+    border-color: rgba(56, 189, 248, 0.32);
+    color: #7dd3fc;
+  }
+
+  /* ---------- Ghost / outline buttons ---------- */
+  .btn-outline-primary {
+    --bs-btn-color: #cfe1ff;
+    --bs-btn-border-color: rgba(240, 192, 79, 0.4);
+    --bs-btn-hover-color: #241703;
+    --bs-btn-hover-bg: linear-gradient(135deg, #f9dd8e, #f0c04f);
+    --bs-btn-hover-border-color: #f0c04f;
+    --bs-btn-active-color: #241703;
+    --bs-btn-active-bg: #f0c04f;
+    --bs-btn-active-border-color: #f0c04f;
+    --bs-btn-disabled-color: rgba(207, 225, 255, 0.4);
+    --bs-btn-disabled-border-color: rgba(207, 225, 255, 0.2);
+  }
+
+  /* ---------- Floating-label fields ---------- */
+  .lux-field {
+    position: relative;
+    margin-bottom: 1.15rem;
+
+    &__control {
+      position: relative;
+    }
+
+    &__icon {
+      position: absolute;
+      left: 1.05rem;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 2;
+      color: var(--pfm-text-faint);
+      font-size: 1.05rem;
+      line-height: 1;
+      pointer-events: none;
+      transition: color 0.2s ease;
+    }
+
+    &__input {
+      width: 100%;
+      min-height: 58px;
+      padding: 1.5rem 3rem 0.5rem 2.9rem;
+      background: rgba(255, 255, 255, 0.045);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      color: var(--pfm-text-primary);
+      font-size: 0.95rem;
+      transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background-color 0.2s ease;
+
+      &::placeholder {
+        color: transparent;
+      }
+
+      &:hover:not(:focus) {
+        border-color: rgba(255, 255, 255, 0.22);
+      }
+
+      &:focus {
+        outline: 0;
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(240, 192, 79, 0.65);
+        box-shadow:
+          0 0 0 4px rgba(240, 192, 79, 0.14),
+          0 8px 28px rgba(0, 0, 0, 0.35);
+      }
+
+      &.is-invalid {
+        border-color: rgba(248, 113, 113, 0.7);
+        box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.12);
+      }
+
+      &:disabled {
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--pfm-text-faint);
+      }
+    }
+
+    &__label {
+      position: absolute;
+      left: 2.9rem;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 2;
+      margin: 0;
+      color: var(--pfm-text-faint);
+      font-size: 0.95rem;
+      line-height: 1;
+      pointer-events: none;
+      transform-origin: left top;
+       transition:
+         transform 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+         color 0.22s ease,
+         font-size 0.22s ease,
+         top 0.22s ease;
+     }
+
+     /* Material-style floating label: on focus OR when the input has any
+        value (length > 0 — includes a single space), shrink + lift above
+        the input so it can never overlap typed text. `:not(:placeholder-shown)`
+        is computed from the live DOM value, so paste, whitespace-only input
+        and browser autofill all trigger it instantly (no keyup needed). */
+     &__input:focus + &__label,
+     &__input:not(:placeholder-shown) + &__label,
+     &__input:-webkit-autofill + &__label,
+     &.lux-field--filled &__label {
+       top: 0.95rem;
+       transform: translateY(0) scale(0.68);
+       font-size: 0.8rem;
+       letter-spacing: 0.12em;
+       text-transform: uppercase;
+       color: var(--pfm-panel-accent);
+     }
+
+     &:focus-within &__icon {
+       color: var(--pfm-panel-accent);
+     }
+   }
+
+   /* ---------- Browser autofill override ---------- */
+   input:-webkit-autofill,
+   input:-webkit-autofill:hover,
+   input:-webkit-autofill:focus,
+   input:-webkit-autofill:active,
+   textarea:-webkit-autofill,
+   select:-webkit-autofill {
+     -webkit-text-fill-color: var(--pfm-text-primary) !important;
+     -webkit-box-shadow: 0 0 0 1000px #161b26 inset !important;
+     box-shadow: 0 0 0 1000px #161b26 inset !important;
+     caret-color: var(--pfm-text-primary);
+     border-radius: 12px;
+     transition: background-color 9999s ease-in-out 0s !important;
+   }
+
+   /* Ensure the label stays floated when the browser has autofilled. */
+   .lux-field__input:-webkit-autofill + .lux-field__label,
+   .lux-field.lux-field--filled .lux-field__label {
+     top: 0.95rem;
+     transform: translateY(0) scale(0.68);
+     font-size: 0.8rem;
+     letter-spacing: 0.12em;
+     text-transform: uppercase;
+     color: var(--pfm-panel-accent);
+   }
+
+  /* Password visibility toggle — sleek icon-only ghost button. */
+  .lux-eye {
+    position: absolute;
+    right: 0.7rem;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    padding: 0;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--pfm-text-faint);
+    font-size: 1.05rem;
+    cursor: pointer;
+    transition: color 0.2s ease, background-color 0.2s ease;
+
+    &:hover {
+      color: var(--pfm-panel-accent);
+      background: rgba(240, 192, 79, 0.1);
+    }
+
+    &:focus-visible {
+      outline: 2px solid rgba(240, 192, 79, 0.5);
+      outline-offset: 2px;
+    }
+  }
+
+  /* ---------- Divider ---------- */
+  .lux-divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1.4rem 0 1.1rem;
+    color: var(--pfm-text-faint);
+    font-size: 0.74rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+
+    &::before,
+    &::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.16), transparent);
+    }
+  }
+
+   /* ---------- Social login ---------- */
+   .lux-social {
+     display: block;
+
+     &__btn {
+       display: inline-flex;
+       align-items: center;
+       justify-content: center;
+       gap: 0.6rem;
+       width: 100%;
+       min-height: 52px;
+       padding: 0.65rem 1rem;
+       border: 1px solid rgba(255, 255, 255, 0.12);
+       border-radius: 12px;
+       background: rgba(255, 255, 255, 0.04);
+       color: var(--pfm-text-primary);
+       font-size: 0.92rem;
+       font-weight: 600;
+       font-family: inherit;
+       cursor: pointer;
+       transition:
+         border-color 0.2s ease,
+         background-color 0.2s ease,
+         transform 0.2s ease,
+         box-shadow 0.2s ease;
+
+       &:hover {
+         border-color: rgba(240, 192, 79, 0.45);
+         background: rgba(240, 192, 79, 0.07);
+         transform: translateY(-1px);
+         box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+       }
+
+       &:focus-visible {
+         outline: 2px solid rgba(240, 192, 79, 0.5);
+         outline-offset: 2px;
+       }
+     }
+
+     &__icon {
+       font-size: 1.15rem;
+     }
+   }
+
+  /* ---------- Links ---------- */
+  .lux-link {
+    color: var(--pfm-panel-accent);
+    font-weight: 600;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: var(--pfm-primary-light);
+      text-decoration: none;
+    }
+  }
+
+  /* ---------- Custom checkbox ---------- */
+  .lux-check {
+    .form-check-input {
+      width: 1.15em;
+      height: 1.15em;
+      background-color: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 5px;
+      cursor: pointer;
+      transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+
+      &:checked {
+        background-color: var(--pfm-panel-accent);
+        border-color: var(--pfm-panel-accent);
+      }
+
+      &:focus {
+        border-color: var(--pfm-panel-accent);
+        box-shadow: 0 0 0 4px rgba(240, 192, 79, 0.18);
+      }
+    }
+
+    .form-check-label {
+      color: var(--pfm-text-muted);
+      cursor: pointer;
+    }
+  }
+
+  /* ---------- Validation ---------- */
+  .invalid-feedback {
+    color: #fda4af;
+    font-size: 0.8rem;
+    margin-top: 0.4rem;
+  }
+
+  /* ---------- Country-code dropdown label (static companion to
+     floating labels) ---------- */
+  .country-code-dropdown .form-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--pfm-panel-accent);
+    margin-bottom: 0.45rem;
+  }
+
+  .country-code-dropdown .searchable-dropdown--lg .searchable-dropdown__box {
+    min-height: 58px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.045);
+    padding-inline: 1rem;
+  }
+}
+
 

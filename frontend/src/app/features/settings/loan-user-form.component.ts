@@ -1,4 +1,4 @@
-import { Component, input, inject, signal, model, effect } from '@angular/core';
+import { Component, input, output, inject, signal, model, effect } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
 import { TransactionService } from '../transaction/services/transaction.service';
@@ -46,6 +46,12 @@ export class LoanUserFormComponent {
   readonly user = input<LoanUserDto | null>(null);
   readonly open = model(false);
 
+  /** Pre-fills the form with a name (e.g. a term typed in a dropdown before creating). */
+  readonly prefillName = input('');
+
+  /** Emits the created/updated loan user after a successful save. */
+  readonly saved = output<LoanUserDto>();
+
   protected readonly service = inject(TransactionService);
   private readonly fb = inject(FormBuilder);
 
@@ -60,6 +66,9 @@ export class LoanUserFormComponent {
     });
     effect(() => {
       const u = this.user();
+      const open = this.open();
+      const prefill = this.prefillName();
+      if (!open) return;
       if (u) {
         this.form.patchValue({
           fullName: u.fullName,
@@ -67,7 +76,7 @@ export class LoanUserFormComponent {
           notes: u.notes ?? '',
         });
       } else {
-        this.form.reset();
+        this.form.reset({ fullName: prefill, contactNumber: '', notes: '' });
       }
     });
   }
@@ -97,9 +106,10 @@ export class LoanUserFormComponent {
     this.submitting.set(true);
     const save = this.user() ? this.service.updateLoanUser(this.user()!.id, request) : this.service.createLoanUser(request);
     save.subscribe({
-      next: () => {
+      next: (dto: LoanUserDto) => {
         this.submitting.set(false);
         this.open.set(false);
+        this.saved.emit(dto);
       },
       error: () => this.submitting.set(false),
     });

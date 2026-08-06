@@ -5,8 +5,10 @@ export interface LoginUserDto {
   firstName: string;
   lastName: string;
   email: string;
+  contact: string;
   status: string;
   emailVerified: boolean;
+  demo: boolean;
 }
 
 export interface LoginResponseData {

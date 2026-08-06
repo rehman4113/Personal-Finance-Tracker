@@ -52,6 +52,10 @@ public class TransactionRequest {
 
     private Long attachmentId;
 
+    @Schema(description = "Loan user ID (LOAN transactions only). When provided, the history is linked " +
+            "to the loan user by ID and its full name is used as the person name.")
+    private Long loanUserId;
+
     @NotEmpty(message = "At least one wallet entry is required")
     @Valid
     private List<WalletEntry> walletEntries;

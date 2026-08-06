@@ -51,7 +51,7 @@ export class SummaryCardComponent {
   readonly icon = input<string>('bi-wallet2');
   readonly tone = input<SummaryTone>('primary');
   readonly hint = input<string>('');
-  /** Optional 6â€“12 month trend series rendered as a sparkline. */
+  /** Optional 6–12 month trend series rendered as a sparkline. */
   readonly trend = input<number[]>([]);
   readonly trendLabels = input<string[]>([]);
 

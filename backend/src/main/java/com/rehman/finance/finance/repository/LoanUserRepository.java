@@ -11,5 +11,9 @@ public interface LoanUserRepository extends JpaRepository<LoanUser, Long> {
 
     Optional<LoanUser> findByUserIdAndUniqueKey(Long userId, String uniqueKey);
 
+    Optional<LoanUser> findByUserIdAndId(Long userId, Long id);
+
+    Optional<LoanUser> findByUserIdAndIdAndUniqueKey(Long userId, Long id, String uniqueKey);
+
     List<LoanUser> findByUserIdAndFullName(Long userId, String fullName);
 }

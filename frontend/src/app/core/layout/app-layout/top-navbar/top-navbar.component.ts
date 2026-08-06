@@ -2,19 +2,16 @@ import { Component, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { LayoutService } from '../../../services/layout.service';
 import { AuthenticationService } from '../../../../features/auth/services/authentication.service';
-import { AUTH_ROUTES } from '../../../../features/auth/constants/auth.constants';
 import { FINANCE_ROUTES } from '../../../constants/finance-routes.constants';
-import { DropdownComponent, DropdownTriggerDirective } from '../../../../shared/components/dropdown';
 
 /**
- * Top navbar — collapse toggle, user menu, logout (Section 7).
- * WHY: shares layout state through LayoutService; user identity from the
- * existing AuthenticationService — no duplicate session logic.
+ * Top navbar — collapse toggle + user profile block.
+ * The whole profile block navigates straight to Settings (which owns the
+ * Logout action), per the sidebar/top-bar simplification.
  */
 @Component({
   selector: 'app-top-navbar',
   standalone: true,
-  imports: [DropdownComponent, DropdownTriggerDirective],
   template: `
     <header class="top-navbar">
       <div class="top-navbar__left">
@@ -29,28 +26,14 @@ import { DropdownComponent, DropdownTriggerDirective } from '../../../../shared/
       </div>
 
       <div class="top-navbar__right">
-        <app-dropdown>
-          <button type="button" pfmDropdownTrigger class="top-navbar__user">
-            <span class="top-navbar__avatar">{{ initials() }}</span>
-            <span class="top-navbar__user-text">
-              <span class="top-navbar__user-name">{{ user()?.firstName }} {{ user()?.lastName }}</span>
-              <span class="top-navbar__user-email">{{ user()?.email }}</span>
-            </span>
-            <i class="bi bi-chevron-down top-navbar__caret"></i>
-          </button>
-          <div pfmDropdownMenu class="top-navbar__menu">
-            <div class="top-navbar__menu-header">
-              <div class="top-navbar__menu-name">{{ user()?.firstName }} {{ user()?.lastName }}</div>
-              <div class="top-navbar__menu-email">{{ user()?.email }}</div>
-            </div>
-            <button type="button" class="top-navbar__menu-item" (click)="goToSettings()">
-              <i class="bi bi-gear me-2"></i>Settings
-            </button>
-            <button type="button" class="top-navbar__menu-item top-navbar__menu-item--danger" (click)="onLogout()">
-              <i class="bi bi-box-arrow-right me-2"></i>Logout
-            </button>
-          </div>
-        </app-dropdown>
+        <button type="button" class="top-navbar__user" (click)="goToSettings()" aria-label="Open settings">
+          <span class="top-navbar__avatar">{{ initials() }}</span>
+          <span class="top-navbar__user-text">
+            <span class="top-navbar__user-name">{{ user()?.firstName }} {{ user()?.lastName }}</span>
+            <span class="top-navbar__user-email">{{ user()?.email }}</span>
+          </span>
+          <i class="bi bi-chevron-right top-navbar__caret"></i>
+        </button>
       </div>
     </header>
   `,
@@ -70,12 +53,5 @@ export class TopNavbarComponent {
 
   goToSettings(): void {
     void this.router.navigate([FINANCE_ROUTES.SETTINGS]);
-  }
-
-  onLogout(): void {
-    this.authService.logout().subscribe({
-      complete: () => void this.router.navigateByUrl(AUTH_ROUTES.LOGIN),
-      error: () => void this.router.navigateByUrl(AUTH_ROUTES.LOGIN),
-    });
   }
 }

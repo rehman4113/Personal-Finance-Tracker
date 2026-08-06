@@ -4,6 +4,7 @@ import com.rehman.finance.auth.dto.request.ForgotPasswordRequest;
 import com.rehman.finance.auth.dto.request.LoginRequest;
 import com.rehman.finance.auth.dto.request.RefreshTokenRequest;
 import com.rehman.finance.auth.dto.request.RegistrationRequest;
+import com.rehman.finance.auth.dto.request.ResendOtpRequest;
 import com.rehman.finance.auth.dto.request.ResetPasswordRequest;
 import com.rehman.finance.auth.dto.request.UpdateProfileRequest;
 import com.rehman.finance.auth.dto.request.VerifyEmailRequest;
@@ -12,6 +13,8 @@ import com.rehman.finance.auth.dto.response.LoginResponse;
 import com.rehman.finance.auth.dto.response.LogoutResponse;
 import com.rehman.finance.auth.dto.response.RefreshTokenResponse;
 import com.rehman.finance.auth.dto.response.RegisterResponse;
+import com.rehman.finance.auth.dto.response.DemoCompleteResponse;
+import com.rehman.finance.auth.dto.response.ResendOtpResponse;
 import com.rehman.finance.auth.dto.response.ResetPasswordResponse;
 import com.rehman.finance.auth.dto.response.UserProfileResponse;
 import com.rehman.finance.auth.dto.response.VerifyEmailResponse;
@@ -83,6 +86,7 @@ public class AuthServiceImpl implements AuthService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .status("ACTIVE")
                 .emailVerified(false)
+                .demo(false)
                 .build();
 
         String otp = generateOtp();
@@ -262,6 +266,61 @@ public class AuthServiceImpl implements AuthService {
     }
 
     /**
+     * Generates a fresh REGISTER_VERIFICATION OTP for an unverified user and
+     * queues it in the outbox (same insert pattern as register()). Replaces
+     * the previous code, so an old OTP becomes invalid immediately.
+     */
+    @Override
+    @Transactional
+    public ResendOtpResponse resendOtp(ResendOtpRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new BusinessException(AuthErrorCode.USER_NOT_FOUND));
+
+        if (Boolean.TRUE.equals(user.getEmailVerified())) {
+            throw new BusinessException(AuthErrorCode.EMAIL_ALREADY_VERIFIED);
+        }
+
+        String otp = generateOtp();
+        user.setOtp(otp);
+        user.setOtpExpiryTime(otpExpiry());
+        userRepository.save(user);
+        log.info("Verification OTP regenerated for user id={}", user.getId());
+
+        emailOutboxRepository.save(EmailOutbox.builder()
+                .userId(user.getId())
+                .email(user.getEmail())
+                .type("REGISTER_VERIFICATION")
+                .otpCode(otp)
+                .status("PENDING")
+                .build());
+        log.info("Verification outbox re-queued for user id={}", user.getId());
+
+        return ResendOtpResponse.builder()
+                .message("Verification code sent to your email")
+                .build();
+    }
+
+    /**
+     * Marks the demo tour as completed for the authenticated user (one-way
+     * flag: once true it stays true — the frontend reads `demo` after login
+     * to decide whether to trigger the onboarding tour).
+     */
+    @Override
+    @Transactional
+    public DemoCompleteResponse markDemoComplete(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(AuthErrorCode.USER_NOT_FOUND));
+
+        user.setDemo(true);
+        userRepository.save(user);
+        log.info("Demo tour marked as completed for user id={}", userId);
+
+        return DemoCompleteResponse.builder()
+                .message("Demo tour marked as completed")
+                .build();
+    }
+
+    /**
      * Deliberately reveals whether the email is registered: a reset request for
      * an unknown email fails loudly with USER_NOT_FOUND instead of returning
      * the generic anti-enumeration message (product requirement).
@@ -377,6 +436,7 @@ public class AuthServiceImpl implements AuthService {
                 .contact(user.getPhoneNumber())
                 .status(user.getStatus())
                 .emailVerified(user.getEmailVerified())
+                .demo(Boolean.TRUE.equals(user.getDemo()))
                 .build();
     }
 

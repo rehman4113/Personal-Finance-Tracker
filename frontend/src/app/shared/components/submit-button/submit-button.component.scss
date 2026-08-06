@@ -1,11 +1,46 @@
+/* Metallic gold CTA — the primary action on every auth page. */
 .btn-primary-gradient {
-  border-radius: 8px;
-  font-weight: 500;
-  padding: 0.75rem 1rem;
+  min-height: 54px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.98rem;
+  letter-spacing: 0.02em;
+  color: #241703;
+  background: linear-gradient(135deg, #f9dd8e 0%, #f0c04f 45%, #d99a2b 100%);
+  border: 1px solid rgba(255, 235, 190, 0.55);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
+  box-shadow:
+    0 10px 30px rgba(240, 192, 79, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    filter 0.18s ease,
+    background 0.18s ease;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+    background: linear-gradient(135deg, #fbe6a5 0%, #f2c95f 45%, #e0a52f 100%);
+    box-shadow:
+      0 14px 36px rgba(240, 192, 79, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0) scale(0.99);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    box-shadow: none;
+    cursor: not-allowed;
+  }
 }
 
 .btn-outline-primary {
-  border-radius: 8px;
-  font-weight: 500;
+  min-height: 54px;
+  border-radius: 12px;
+  font-weight: 600;
   padding: 0.75rem 1rem;
 }

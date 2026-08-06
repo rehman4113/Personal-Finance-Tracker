@@ -13,16 +13,19 @@ import { ValidationMessagesComponent } from '../../../../shared/components/valid
   standalone: true,
   imports: [ReactiveFormsModule, ValidationMessagesComponent],
   template: `
-    <div class="phone-number-input mb-2">
-      <label [for]="inputId()" class="form-label">{{ label() }}</label>
-      <div class="input-group">
+    <div
+      class="phone-number-input mb-2 lux-field"
+      [class.lux-field--filled]="(control.value ?? '').length > 0"
+    >
+      <div class="lux-field__control">
+        <i class="bi bi-phone lux-field__icon" aria-hidden="true"></i>
         @if (countryCode()) {
-          <span class="input-group-text phone-prefix">{{ countryCode() }}</span>
+          <span class="lux-prefix">{{ countryCode() }}</span>
         }
         <input
           [id]="inputId()"
           type="tel"
-          class="form-control form-control-lg-custom"
+          class="form-control lux-field__input"
           [class.is-invalid]="validationControl.invalid && (validationControl.dirty || validationControl.touched)"
           [placeholder]="placeholder()"
           [formControl]="control"
@@ -30,6 +33,7 @@ import { ValidationMessagesComponent } from '../../../../shared/components/valid
           inputmode="numeric"
           autocomplete="tel-national"
         />
+        <label class="lux-field__label" [for]="inputId()">{{ label() }}</label>
       </div>
       <app-validation-messages [control]="validationControl" />
     </div>

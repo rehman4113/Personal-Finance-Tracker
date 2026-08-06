@@ -55,6 +55,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.PUT, "/api/v1/auth/profile").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/auth/demo-complete").authenticated()
                         .requestMatchers(PUBLIC_URLS).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/finance/master/**").permitAll()
                         .requestMatchers("/api/v1/finance/**").authenticated()

@@ -2,6 +2,10 @@
   display: block;
 }
 
-.form-check-label {
-  font-size: 0.9rem;
+.auth-switch {
+  color: var(--pfm-text-muted);
+
+  .lux-link {
+    font-weight: 700;
+  }
 }

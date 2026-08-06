@@ -10,8 +10,17 @@ import { AUTH_API } from '../api/auth.api';
 import { LoginRequest } from '../dto/request/login-request.dto';
 import { RegisterRequest } from '../dto/request/register-request.dto';
 import { RefreshTokenRequest } from '../dto/request/refresh-token-request.dto';
-import { LoginResponse, LoginResponseData } from '../dto/response/login-response.dto';
+import { ForgotPasswordRequest } from '../dto/request/forgot-password-request.dto';
+import { ResetPasswordRequest } from '../dto/request/reset-password-request.dto';
+import { ResendOtpRequest } from '../dto/request/resend-otp-request.dto';
+import { VerifyEmailRequest } from '../dto/request/verify-email-request.dto';
+import { UpdateProfileRequest } from '../dto/request/update-profile-request.dto';
+import { LoginResponse, LoginResponseData, LoginUserDto } from '../dto/response/login-response.dto';
 import { RegisterResponse } from '../dto/response/register-response.dto';
+import { ForgotPasswordResponse } from '../dto/response/forgot-password-response.dto';
+import { ResetPasswordResponse } from '../dto/response/reset-password-response.dto';
+import { ResendOtpResponse } from '../dto/response/resend-otp-response.dto';
+import { VerifyEmailResponse } from '../dto/response/verify-email-response.dto';
 import { RefreshTokenResponse, RefreshTokenResponseData } from '../dto/response/refresh-token-response.dto';
 import { LogoutResponse } from '../dto/response/logout-response.dto';
 import { ApiResponse } from '../dto/response/api-response.dto';
@@ -67,6 +76,92 @@ export class AuthenticationService {
   refreshToken(refreshToken: string): Observable<RefreshTokenResponse> {
     const request: RefreshTokenRequest = { refreshToken };
     return this.http.post<RefreshTokenResponse>(`${this.baseUrl}${AUTH_API.REFRESH}`, request);
+  }
+
+  /**
+   * Step 1 of the password reset flow — requests a reset OTP for an email.
+   * Backend contract: throws USER_NOT_FOUND (404) for unknown emails.
+   */
+  forgotPassword(request: ForgotPasswordRequest): Observable<ForgotPasswordResponse> {
+    this._isLoading.set(true);
+    return this.http.post<ForgotPasswordResponse>(`${this.baseUrl}${AUTH_API.FORGOT_PASSWORD}`, request).pipe(
+      tap((response) => {
+        if (response.success) {
+          this.toast.success(response.message || 'Reset code sent to your email');
+        }
+      }),
+      catchError((error) => this.handleError(error)),
+      finalize(() => this._isLoading.set(false)),
+    );
+  }
+
+  /**
+   * Step 2 of the password reset flow — verifies the OTP and sets a new password.
+   */
+  resetPassword(request: ResetPasswordRequest): Observable<ResetPasswordResponse> {
+    this._isLoading.set(true);
+    return this.http.post<ResetPasswordResponse>(`${this.baseUrl}${AUTH_API.RESET_PASSWORD}`, request).pipe(
+      tap((response) => {
+        if (response.success) {
+          this.toast.success(response.message || 'Password reset successfully');
+        }
+      }),
+      catchError((error) => this.handleError(error)),
+      finalize(() => this._isLoading.set(false)),
+    );
+  }
+
+  /**
+   * Confirms an email address with its OTP (registration, or a changed
+   * email address after updateProfile).
+   */
+  verifyEmail(request: VerifyEmailRequest): Observable<VerifyEmailResponse> {
+    this._isLoading.set(true);
+    return this.http.post<VerifyEmailResponse>(`${this.baseUrl}${AUTH_API.VERIFY_EMAIL}`, request).pipe(
+      tap((response) => {
+        if (response.success) {
+          this.toast.success(response.message || 'Email verified successfully');
+        }
+      }),
+      catchError((error) => this.handleError(error)),
+      finalize(() => this._isLoading.set(false)),
+    );
+  }
+
+  /**
+   * Re-sends the email verification OTP for an unverified address (register
+   * verify step, and email changes after updateProfile).
+   */
+  resendOtp(request: ResendOtpRequest): Observable<ResendOtpResponse> {
+    this._isLoading.set(true);
+    return this.http.post<ResendOtpResponse>(`${this.baseUrl}${AUTH_API.RESEND_OTP}`, request).pipe(
+      tap((response) => {
+        if (response.success) {
+          this.toast.success(response.message || 'Verification code sent to your email');
+        }
+      }),
+      catchError((error) => this.handleError(error)),
+      finalize(() => this._isLoading.set(false)),
+    );
+  }
+
+  /**
+   * Updates the authenticated user's profile (authenticated PUT endpoint).
+   * On success the in-memory + stored user are refreshed with the response,
+   * so Settings and the top bar reflect the new values immediately.
+   */
+  updateProfile(request: UpdateProfileRequest): Observable<ApiResponse<LoginUserDto>> {
+    this._isLoading.set(true);
+    return this.http.put<ApiResponse<LoginUserDto>>(`${this.baseUrl}${AUTH_API.UPDATE_PROFILE}`, request).pipe(
+      tap((response) => {
+        if (response.success && response.data) {
+          this.updateStoredUser(response.data);
+          this.toast.success(response.message || 'Profile updated successfully');
+        }
+      }),
+      catchError((error) => this.handleError(error)),
+      finalize(() => this._isLoading.set(false)),
+    );
   }
 
   /**
@@ -164,6 +259,54 @@ export class AuthenticationService {
     this.storeTokens(tokenInfo, rememberMe);
     localStorage.setItem(AUTH_STORAGE_KEYS.AUTH_USER, JSON.stringify(user));
     this._currentUser.set(user);
+  }
+
+  /** Replaces the stored user with the profile returned by the backend. */
+  private updateStoredUser(data: LoginUserDto): void {
+    const user: User = { ...data };
+    localStorage.setItem(AUTH_STORAGE_KEYS.AUTH_USER, JSON.stringify(user));
+    this._currentUser.set(user);
+  }
+
+  /**
+   * Marks the current user's email as verified locally after a successful
+   * verify-email call (the verify endpoint returns only a message, so the
+   * stored profile is updated client-side to stay in sync with the backend).
+   */
+  markEmailVerified(): void {
+    const user = this._currentUser();
+    if (!user) return;
+    const updated: User = { ...user, emailVerified: true };
+    localStorage.setItem(AUTH_STORAGE_KEYS.AUTH_USER, JSON.stringify(updated));
+    this._currentUser.set(updated);
+  }
+
+  /**
+   * Marks the demo tour as completed (authenticated PATCH). On success the
+   * stored user's `demo` flag is flipped locally so the tour never shows
+   * again without a reload.
+   */
+  markDemoCompleted(): Observable<ApiResponse<{ message: string }>> {
+    this._isLoading.set(true);
+    return this.http
+      .patch<ApiResponse<{ message: string }>>(`${this.baseUrl}${AUTH_API.DEMO_COMPLETE}`, null)
+      .pipe(
+        tap((response) => {
+          if (response.success) {
+            this.markDemoSeenLocally();
+          }
+        }),
+        catchError((error) => this.handleError(error)),
+        finalize(() => this._isLoading.set(false)),
+      );
+  }
+
+  private markDemoSeenLocally(): void {
+    const user = this._currentUser();
+    if (!user) return;
+    const updated: User = { ...user, demo: true };
+    localStorage.setItem(AUTH_STORAGE_KEYS.AUTH_USER, JSON.stringify(updated));
+    this._currentUser.set(updated);
   }
 
   private loadStoredUser(): User | null {

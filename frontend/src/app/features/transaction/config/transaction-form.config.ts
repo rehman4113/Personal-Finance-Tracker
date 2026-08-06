@@ -7,7 +7,8 @@ export type TransactionFieldType =
   | 'date'
   | 'textarea'
   | 'wallet'
-  | 'purpose';
+  | 'purpose'
+  | 'loanUser';
 
 /**
  * Declarative form field descriptor (Section 10.2).
@@ -67,7 +68,7 @@ export const TRANSACTION_FORM_FIELDS: Record<TransactionTypeCode, { fields: Tran
   },
   LOAN: {
     fields: [
-      { name: 'personName', label: 'Person Name', controlType: 'input', required: true, placeholder: 'Who is this loan with?' },
+      { name: 'loanUserId', label: 'Person', controlType: 'loanUser', required: true, placeholder: 'Search or type a new name' },
       { name: 'directionId', label: 'Direction', controlType: 'select', required: true, optionsSource: 'loanDirections' },
       { name: 'amount', label: 'Amount', controlType: 'currency', required: true, placeholder: '0.00' },
       { name: 'walletId', label: 'Wallet', controlType: 'wallet', required: true },

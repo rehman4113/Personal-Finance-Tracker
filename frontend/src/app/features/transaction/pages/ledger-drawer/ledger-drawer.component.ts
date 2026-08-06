@@ -36,14 +36,14 @@ import { CountUpDirective } from '../../../../shared/directives/count-up.directi
                   @if (entry.debit) {
                     <span appCountUp [appCountUpValue]="entry.debit" appCountUpFormat="amount" ></span>
                   } @else {
-                    â€”
+                    —
                   }
                 </td>
                 <td class="text-end text-success">
                   @if (entry.credit) {
                     <span appCountUp [appCountUpValue]="entry.credit" appCountUpFormat="amount" ></span>
                   } @else {
-                    â€”
+                    —
                   }
                 </td>
                 <td class="text-end fw-semibold">

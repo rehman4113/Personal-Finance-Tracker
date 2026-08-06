@@ -32,6 +32,7 @@ import {
       <app-searchable-dropdown
         [options]="options()"
         placeholder="Select country code"
+        size="lg"
         [ngModel]="selectedCode()"
         (ngModelChange)="onSelect($event)"
       />

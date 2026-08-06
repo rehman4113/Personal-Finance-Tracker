@@ -37,7 +37,7 @@ export interface TableActionEvent<R> {
 }
 
 /**
- * Configurable data table â€” sticky header, sorting, pagination, skeleton
+ * Configurable data table — sticky header, sorting, pagination, skeleton
  * loading, CSV export, no-data state (Section 11/14).
  * WHY: every feature's list is the same table; only columns/actions differ.
  */
@@ -215,7 +215,7 @@ export class DataTableComponent<R> {
 
   cellText(col: TableColumn<R>, row: R): string {
     const v = col.cell(row);
-    return v === null || v === undefined ? 'â€”' : String(v);
+    return v === null || v === undefined ? '—' : String(v);
   }
 
   cellNumeric(col: TableColumn<R>, row: R): number | null {
@@ -281,7 +281,7 @@ export class DataTableComponent<R> {
     this.action.emit({ action, row });
   }
 
-  /** Exports the CURRENT (filtered) row set â€” the full input, not just the page. */
+  /** Exports the CURRENT (filtered) row set — the full input, not just the page. */
   onExport(): void {
     const cols = this.columns();
     exportToCsv(this.exportName(), cols.map((c) => ({ header: c.label, value: (row) => c.cell(row as R) })), this.rows());

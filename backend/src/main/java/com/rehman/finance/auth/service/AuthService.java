@@ -4,6 +4,7 @@ import com.rehman.finance.auth.dto.request.ForgotPasswordRequest;
 import com.rehman.finance.auth.dto.request.LoginRequest;
 import com.rehman.finance.auth.dto.request.RefreshTokenRequest;
 import com.rehman.finance.auth.dto.request.RegistrationRequest;
+import com.rehman.finance.auth.dto.request.ResendOtpRequest;
 import com.rehman.finance.auth.dto.request.ResetPasswordRequest;
 import com.rehman.finance.auth.dto.request.UpdateProfileRequest;
 import com.rehman.finance.auth.dto.request.VerifyEmailRequest;
@@ -12,6 +13,8 @@ import com.rehman.finance.auth.dto.response.LoginResponse;
 import com.rehman.finance.auth.dto.response.LogoutResponse;
 import com.rehman.finance.auth.dto.response.RefreshTokenResponse;
 import com.rehman.finance.auth.dto.response.RegisterResponse;
+import com.rehman.finance.auth.dto.response.DemoCompleteResponse;
+import com.rehman.finance.auth.dto.response.ResendOtpResponse;
 import com.rehman.finance.auth.dto.response.ResetPasswordResponse;
 import com.rehman.finance.auth.dto.response.UserProfileResponse;
 import com.rehman.finance.auth.dto.response.VerifyEmailResponse;
@@ -30,9 +33,13 @@ public interface AuthService {
 
     VerifyEmailResponse verifyEmail(VerifyEmailRequest request);
 
+    ResendOtpResponse resendOtp(ResendOtpRequest request);
+
     ForgotPasswordResponse forgotPassword(ForgotPasswordRequest request);
 
     ResetPasswordResponse resetPassword(ResetPasswordRequest request);
 
     UserProfileResponse updateProfile(Long userId, UpdateProfileRequest request);
+
+    DemoCompleteResponse markDemoComplete(Long userId);
 }

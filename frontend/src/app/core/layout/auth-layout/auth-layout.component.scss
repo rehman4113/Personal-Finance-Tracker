@@ -1,14 +1,63 @@
 .auth-layout {
+  /* ==================================================================
+     LUXURY DARK TOKENS — scoped to the auth pages (login / register /
+     forgot-password). Every child component (inputs, dropdowns, cards,
+     badges) inherits these instead of the light global defaults.
+     ================================================================== */
+  --pfm-bg-gradient-start: #0a0e17;
+  --pfm-bg-gradient-end: #0d1420;
+  --pfm-card-bg: #121824;
+  --pfm-card-border: rgba(255, 255, 255, 0.1);
+  --pfm-radius-lg: 12px;
+  --pfm-radius-card: 22px;
+  --pfm-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --pfm-shadow-card: 0 40px 90px rgba(0, 0, 0, 0.65);
+  --pfm-input-bg: rgba(255, 255, 255, 0.045);
+  --pfm-input-border: rgba(255, 255, 255, 0.12);
+  --pfm-text-primary: #eaf1fb;
+  --pfm-text-muted: #9aa8bf;
+  --pfm-text-faint: #66748c;
+  --pfm-divider: rgba(255, 255, 255, 0.08);
+  --pfm-row-hover: rgba(255, 255, 255, 0.05);
+  --pfm-primary: #f0c04f;
+  --pfm-primary-light: #f9dd8e;
+  --pfm-primary-deep: #c08a26;
+  --pfm-panel-accent: #f0c04f;
+  --pfm-primary-tint: rgba(240, 192, 79, 0.12);
+  --pfm-primary-icon: #f5cf6e;
+  --pfm-focus-ring: rgba(240, 192, 79, 0.25);
+  --pfm-success: #4ade80;
+  --pfm-success-tint: rgba(74, 222, 128, 0.14);
+  --pfm-danger: #f87171;
+  --pfm-danger-tint: rgba(248, 113, 113, 0.14);
+  --pfm-warning: #fbbf24;
+  --pfm-warning-tint: rgba(251, 191, 36, 0.14);
+  --pfm-info: #38bdf8;
+  --pfm-info-tint: rgba(56, 189, 248, 0.14);
+  --pfm-icon-circle-size: 3.1rem;
+  --pfm-heading-size: 1.7rem;
+  --pfm-subtext-size: 0.92rem;
+  --pfm-label-size: 0.8rem;
+  --pfm-card-padding: 2.25rem;
+  --pfm-input-lg: 0.95rem;
+  --pfm-input-padding-y: 0.72rem;
+  --pfm-input-padding-x: 1rem;
+
+  --bs-link-color: var(--pfm-panel-accent);
+  --bs-link-hover-color: var(--pfm-primary-light);
+
   position: relative;
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
+  overflow: hidden;
+  background: linear-gradient(165deg, #0a0e17 0%, #0b1220 52%, #0d1420 100%);
 }
 
-/* Full-bleed background behind everything (per §27.1.1) — fixed so it never
-   scrolls; purely decorative, so clicks pass through. */
+/* Full-bleed background behind everything — fixed so it never scrolls;
+   purely decorative, so clicks pass through. */
 .auth-layout__background {
   position: fixed;
   inset: 0;
@@ -24,34 +73,100 @@
   justify-content: center;
 }
 
-/* Floating glass-card on top of the background (per §27.1.2). */
+/* Floating dark-glass card on top of the luxury backdrop. */
 .auth-layout__card {
+  position: relative;
   width: 100%;
   max-width: 460px;
   display: flex;
   flex-direction: column;
-  background: var(--pfm-card-bg);
-  border-radius: var(--pfm-radius-card);
-  box-shadow: var(--pfm-shadow-card);
   padding: var(--pfm-card-padding);
+  background: linear-gradient(165deg, rgba(26, 34, 51, 0.82), rgba(13, 18, 27, 0.86));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--pfm-radius-card);
+  box-shadow:
+    0 40px 90px rgba(0, 0, 0, 0.65),
+    0 0 60px rgba(240, 192, 79, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px) saturate(1.35);
+  -webkit-backdrop-filter: blur(20px) saturate(1.35);
+  animation: pfm-auth-card-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  /* Gold hairline across the top edge. */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 62%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(240, 192, 79, 0.75), transparent);
+  }
 }
 
+@keyframes pfm-auth-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Brand: gold gradient logo mark + refined wordmark. */
 .auth-layout__brand {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--pfm-primary);
+  gap: 0.7rem;
+  margin-bottom: 1.5rem;
 
-  .bi {
-    font-size: 1.25rem;
+  &-mark {
+    position: relative;
+    width: 42px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 13px;
+    background: linear-gradient(140deg, #f9dd8e, #d99a2b);
+    color: #241703;
+    font-size: 1.2rem;
+    box-shadow:
+      0 8px 20px rgba(240, 192, 79, 0.35),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5);
+
+    /* Glass sheen on the mark. */
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 13px;
+      background: linear-gradient(160deg, rgba(255, 255, 255, 0.35), transparent 45%);
+      pointer-events: none;
+    }
+
+    .bi {
+      position: relative;
+      z-index: 1;
+    }
+  }
+
+  &-name {
+    font-size: 1.06rem;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    background: linear-gradient(180deg, #ffffff 20%, #b9c8dd 90%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
 }
 
-/* Last-resort fallback (per §27.1.3): only the card's inner content scrolls,
+/* Last-resort fallback: only the card's inner content scrolls,
    with the brand header anchored — scrollbar hidden. */
 @media (min-width: 768px) {
   .auth-layout__card {

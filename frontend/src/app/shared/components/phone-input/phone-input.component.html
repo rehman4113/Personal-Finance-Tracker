@@ -1,0 +1,34 @@
+<div class="phone-field" [class.phone-field--disabled]="control.disabled">
+  <label class="phone-field__label" [for]="inputId()">{{ label() }}</label>
+
+  <div
+    class="phone-field__group"
+    [class.is-invalid]="validationControl.invalid && (validationControl.dirty || validationControl.touched)"
+  >
+    <div class="phone-field__country">
+      <app-searchable-dropdown
+        [options]="countryOptions"
+        placeholder="Code"
+        [ngModel]="selectedCode()"
+        (ngModelChange)="onCountryChange($event)"
+      />
+    </div>
+
+    <span class="phone-field__divider" aria-hidden="true"></span>
+
+    <div class="phone-field__input-wrap">
+      <input
+        [id]="inputId()"
+        type="tel"
+        class="phone-field__input"
+        [placeholder]="placeholder()"
+        [formControl]="control"
+        (blur)="onBlur()"
+        inputmode="numeric"
+        autocomplete="tel-national"
+      />
+    </div>
+  </div>
+
+  <app-validation-messages [control]="validationControl" />
+</div>

@@ -125,7 +125,7 @@ export function purposeDisplay(tx: TransactionDto, service: TransactionService):
 
 /** Person name for LOAN rows, else merchant. */
 export function personDisplay(tx: TransactionDto): string {
-  return tx.personName || tx.merchant || '—';
+  return tx.loanUserName || tx.personName || tx.merchant || '—';
 }
 
 /** Resolves a TransactionColumnKey to a configured TableColumn cell renderer. */

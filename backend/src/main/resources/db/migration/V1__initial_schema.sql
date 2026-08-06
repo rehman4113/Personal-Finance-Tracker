@@ -1,9 +1,18 @@
 -- ============================================================
--- Initial Schema (DDL only)
--- Schema DDL is versioned here. All system seed rows live in
--- V2 (transaction types + statuses + system purposes and loan
--- directions). Wallet types and user purposes/subcategories are
--- user-created via the creatable dropdowns.
+-- Initial Schema (DDL only) — ONE-TIME CONSOLIDATED SNAPSHOT.
+--
+-- Previously: V1 (original schema) + V3 (shared seed categories,
+-- OTP columns, email_outbox) have been squashed into this single
+-- file as if the schema were created fresh in one shot. The
+-- "demo" tour flag is also defined here (NOT NULL DEFAULT FALSE).
+--
+-- All system seed rows live in V2 (transaction types + statuses +
+-- system purposes and subcategories + loan directions). Wallet
+-- types and user purposes/subcategories are user-created via the
+-- creatable dropdowns.
+--
+-- From this point on, schema changes resume as normal incremental
+-- migrations (V4__, V5__, ...).
 -- ============================================================
 CREATE TABLE "users" (
   "id" BIGSERIAL PRIMARY KEY,
@@ -14,6 +23,9 @@ CREATE TABLE "users" (
   "phone_number" varchar(20),
   "status" varchar(20) DEFAULT 'ACTIVE',
   "email_verified" boolean DEFAULT false,
+  "demo" boolean NOT NULL DEFAULT false,
+  "otp" varchar(6),
+  "otp_expiry_time" timestamp,
   "created_at" timestamp NOT NULL,
   "updated_at" timestamp NOT NULL
 );
@@ -129,10 +141,14 @@ CREATE TABLE "pf_fi_transaction_history" (
   "reference_number" varchar(100),
   "notes" text,
   "attachment_id" bigint REFERENCES "pf_fi_receipt_attachment"("id") DEFERRABLE INITIALLY IMMEDIATE,
+  "loan_user_id" bigint REFERENCES "pf_fi_loan_users"("id") DEFERRABLE INITIALLY IMMEDIATE,
+  "loan_user_unique_key" varchar(255),
   "created_at" timestamp,
   "updated_at" timestamp,
   UNIQUE ("user_id", "reference_number")
 );
+
+CREATE INDEX ON "pf_fi_transaction_history" ("loan_user_id");
 
 CREATE TABLE "pf_fi_transaction_details" (
   "id" BIGSERIAL PRIMARY KEY,
@@ -262,7 +278,28 @@ CREATE TABLE "system_configuration" (
   "updated_at" timestamp
 );
 
+-- Email outbox: transactional OTP delivery queue. Auth flows
+-- (register / forgot-password / resend-otp) only INSERT rows here;
+-- EmailOutboxScheduler polls PENDING rows in batches of 20 and
+-- sends them via Brevo, updating status as it goes.
+CREATE TABLE "email_outbox" (
+  "id" BIGSERIAL PRIMARY KEY,
+  "user_id" bigint NOT NULL REFERENCES "users"("id") DEFERRABLE INITIALLY IMMEDIATE,
+  "email" varchar(255) NOT NULL,
+  "type" varchar(40) NOT NULL,
+  "otp_code" varchar(6) NOT NULL,
+  "status" varchar(20) NOT NULL DEFAULT 'PENDING',
+  "attempt_count" int NOT NULL DEFAULT 0,
+  "last_error" varchar(500),
+  "created_at" timestamp NOT NULL,
+  "sent_at" timestamp
+);
+
 -- Indexes for user-ownable master items (user_id NULL = system seed) and system wallets
 CREATE INDEX "idx_purpose_user_id"     ON "pf_fi_transaction_purpose" ("user_id");
 CREATE INDEX "idx_subcategory_user_id" ON "pf_fi_transaction_subcategory" ("user_id");
 CREATE INDEX "idx_wallets_is_system"   ON "pf_fi_wallets" ("user_id", "is_system");
+
+-- Scheduler polling: oldest PENDING rows first.
+CREATE INDEX ON "email_outbox" ("status");
+CREATE INDEX ON "email_outbox" ("created_at");

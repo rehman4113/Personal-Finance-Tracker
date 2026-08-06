@@ -66,5 +66,14 @@ export function getValidationMessage(errors: ValidationErrors | null): string | 
   if (errors['passwordLowercase']) return 'Must contain a lowercase letter';
   if (errors['passwordDigit']) return 'Must contain a digit';
   if (errors['passwordSpecial']) return 'Must contain a special character';
+  if (errors['otpDigits']) return 'Enter the complete 6-digit code';
   return 'Invalid value';
 }
+
+/** OTP must be exactly 6 digits (backend stores a 6-char code). */
+export const otpValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+  const value = String(control.value ?? '').trim();
+  if (!value) return { required: true };
+  if (!/^\d{6}$/.test(value)) return { otpDigits: true };
+  return null;
+};
