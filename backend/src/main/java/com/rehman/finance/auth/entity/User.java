@@ -45,6 +45,12 @@ public class User {
     @Builder.Default
     private Boolean emailVerified = false;
 
+    @Column(length = 6)
+    private String otp;
+
+    @Column(name = "otp_expiry_time")
+    private LocalDateTime otpExpiryTime;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

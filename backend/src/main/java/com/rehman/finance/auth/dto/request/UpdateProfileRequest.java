@@ -15,7 +15,7 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RegistrationRequest {
+public class UpdateProfileRequest {
 
     @NotBlank(message = "First name is required")
     @Size(min = 1, max = 100, message = "First name must be between 1 and 100 characters")
@@ -27,10 +27,6 @@ public class RegistrationRequest {
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
     private String email;
-
-    @NotBlank(message = "Password is required")
-    @Size(min = 6, max = 100, message = "Password must be between 6 and 100 characters")
-    private String password;
 
     @NotBlank(message = "Country code is required")
     @Pattern(regexp = "^[0-9]{1,3}$", message = "Country code must be 1 to 3 digits")

@@ -15,7 +15,11 @@ public enum AuthErrorCode implements ErrorCodeProvider {
     JWT_INVALID(HttpStatus.UNAUTHORIZED, "AUTH-401-004", "Invalid JWT token"),
     JWT_EXPIRED(HttpStatus.UNAUTHORIZED, "AUTH-401-005", "JWT token has expired"),
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "AUTH-401-006", "Authentication required"),
-    FORBIDDEN(HttpStatus.FORBIDDEN, "AUTH-403-003", "Access denied");
+    FORBIDDEN(HttpStatus.FORBIDDEN, "AUTH-403-003", "Access denied"),
+    OTP_INVALID(HttpStatus.BAD_REQUEST, "AUTH-400-001", "Invalid verification code"),
+    OTP_EXPIRED(HttpStatus.BAD_REQUEST, "AUTH-400-002", "Verification code has expired"),
+    PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST, "AUTH-400-003", "Passwords do not match"),
+    EMAIL_ALREADY_VERIFIED(HttpStatus.CONFLICT, "AUTH-409-002", "Email already verified");
 
     private final HttpStatus httpStatus;
     private final String code;

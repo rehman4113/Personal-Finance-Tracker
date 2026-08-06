@@ -25,6 +25,11 @@
 #   (host/port/user/password shown in Supabase Dashboard → Project Settings →
 #   Database). Render will also inject PORT automatically at deploy time.
 #
+# NOTE ON MAIL (Brevo SMTP):
+#   MAIL_USERNAME / MAIL_PASSWORD / MAIL_FROM_ADDRESS are REQUIRED — the app
+#   will fail to start if unset. MAIL_HOST / MAIL_PORT / MAIL_FROM_NAME have
+#   defaults and may be omitted.
+#
 # NOTE ON CORS:
 #   Allowed origins are externalized via APP_CORS_ORIGINS (comma-separated),
 #   read by auth/security/SecurityConfig.java (default: http://localhost:4200).
@@ -62,6 +67,19 @@ spring:
     # DDL_AUTO=validate on Render once Flyway has created the schema.
     validate-on-migrate: true
 
+  # Brevo SMTP — values injected from Render env vars (see header comment).
+  mail:
+    host: ${MAIL_HOST:smtp-relay.brevo.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
 springdoc:
   api-docs:
     enabled: true
@@ -86,3 +104,6 @@ app:
     refresh-token-expiration: ${JWT_REFRESH_EXPIRATION_MS:604800000}
   cors:
     allowed-origins: ${APP_CORS_ORIGINS:http://localhost:4200}
+  mail:
+    from-address: ${MAIL_FROM_ADDRESS}
+    from-name: ${MAIL_FROM_NAME:Personal Finance Tracker}

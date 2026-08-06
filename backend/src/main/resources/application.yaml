@@ -28,6 +28,36 @@ spring:
     # already-applied migrations therefore differ on existing databases.
     validate-on-migrate: false
 
+  # ============================================================================
+  # Brevo SMTP — LOCAL DEV ONLY.
+  #
+  # !!! WARNING !!!
+  # This file (src/main/resources/application.yaml) IS TRACKED IN GIT and is
+  # NOT in .gitignore. The MAIL_PASSWORD value here WILL be committed if you
+  # let it — the DB password / JWT secret above are already committed by the
+  # existing convention, so this file carries the same risk:
+  #
+  #   * Paste your real Brevo SMTP key into `password` ONLY in your local work
+  #     copy, right before running the app, and restore the placeholder (or
+  #     revert the line) before `git add`.
+  #   * Never commit the real key. There is no commit hook or .gitignore rule
+  #     protecting this file today.
+  #
+  # The key is the Brevo SMTP master key (NOT your Brevo account password),
+  # generated in Brevo dashboard → SMTP & API → SMTP settings.
+  # ============================================================================
+  mail:
+    host: smtp-relay.brevo.com
+    port: 587
+    username: b49afb001@smtp-brevo.com
+    password: CHANGE_ME_PASTE_BREVO_SMTP_KEY_HERE_LOCALLY_ONLY
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
 springdoc:
   api-docs:
     enabled: true
@@ -52,3 +82,7 @@ app:
     refresh-token-expiration: 604800000
   cors:
     allowed-origins: http://localhost:4200,http://127.0.0.1:4200
+  # Verified sender used as the From address on all outbox emails.
+  mail:
+    from-address: dding5572@gmail.com
+    from-name: Personal Finance Tracker

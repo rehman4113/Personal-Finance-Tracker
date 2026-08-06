@@ -1,12 +1,21 @@
 package com.rehman.finance.auth.controller;
 
+import com.rehman.finance.auth.dto.request.ForgotPasswordRequest;
 import com.rehman.finance.auth.dto.request.LoginRequest;
 import com.rehman.finance.auth.dto.request.RefreshTokenRequest;
 import com.rehman.finance.auth.dto.request.RegistrationRequest;
+import com.rehman.finance.auth.dto.request.ResetPasswordRequest;
+import com.rehman.finance.auth.dto.request.UpdateProfileRequest;
+import com.rehman.finance.auth.dto.request.VerifyEmailRequest;
+import com.rehman.finance.auth.dto.response.ForgotPasswordResponse;
 import com.rehman.finance.auth.dto.response.LoginResponse;
 import com.rehman.finance.auth.dto.response.LogoutResponse;
 import com.rehman.finance.auth.dto.response.RefreshTokenResponse;
 import com.rehman.finance.auth.dto.response.RegisterResponse;
+import com.rehman.finance.auth.dto.response.ResetPasswordResponse;
+import com.rehman.finance.auth.dto.response.UserProfileResponse;
+import com.rehman.finance.auth.dto.response.VerifyEmailResponse;
+import com.rehman.finance.auth.security.UserPrincipal;
 import com.rehman.finance.auth.service.AuthService;
 import com.rehman.finance.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,7 +25,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -74,5 +85,52 @@ public class AuthController {
             refreshToken = authHeader.substring(7);
         }
         return ResponseEntity.ok(ApiResponse.success("Logout successful", authService.logout(refreshToken)));
+    }
+
+    @Operation(summary = "Verify email with OTP code")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Email verified successfully"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid or expired OTP"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "User not found"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "Email already verified")
+    })
+    @PostMapping("/verify-email")
+    public ResponseEntity<ApiResponse<VerifyEmailResponse>> verifyEmail(@Valid @RequestBody VerifyEmailRequest request) {
+        return ResponseEntity.ok(ApiResponse.success("Email verified successfully", authService.verifyEmail(request)));
+    }
+
+    @Operation(summary = "Request a password reset OTP")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Reset code generated if the email is registered")
+    })
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<ForgotPasswordResponse>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        return ResponseEntity.ok(ApiResponse.success("Request processed", authService.forgotPassword(request)));
+    }
+
+    @Operation(summary = "Reset password with OTP code")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Password reset successfully"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid or expired OTP, or passwords do not match"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "User not found")
+    })
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<ResetPasswordResponse>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        return ResponseEntity.ok(ApiResponse.success("Password reset successfully", authService.resetPassword(request)));
+    }
+
+    @Operation(summary = "Update the authenticated user's profile")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Profile updated successfully"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid request"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "User not found"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "Email already exists")
+    })
+    @PutMapping("/profile")
+    public ResponseEntity<ApiResponse<UserProfileResponse>> updateProfile(
+            @AuthenticationPrincipal UserPrincipal currentUser,
+            @Valid @RequestBody UpdateProfileRequest request) {
+        return ResponseEntity.ok(ApiResponse.success("Profile updated successfully",
+                authService.updateProfile(currentUser.getUserId(), request)));
     }
 }

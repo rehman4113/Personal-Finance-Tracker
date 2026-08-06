@@ -72,7 +72,7 @@ public class WalletServiceImpl implements WalletService {
         Wallet wallet = Wallet.builder()
                 .userId(userId)
                 .walletType(cashType)
-                .walletName("System")
+                .walletName("CASH")
                 .currency("PKR")
                 .initialBalance(java.math.BigDecimal.ZERO)
                 .currentBalance(java.math.BigDecimal.ZERO)

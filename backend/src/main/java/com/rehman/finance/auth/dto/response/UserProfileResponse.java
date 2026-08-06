@@ -17,6 +17,7 @@ public class UserProfileResponse {
     private String firstName;
     private String lastName;
     private String email;
+    private String contact;
     private String status;
     private boolean emailVerified;
 }

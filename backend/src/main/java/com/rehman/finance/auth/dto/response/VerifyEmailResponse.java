@@ -11,12 +11,7 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RegisterResponse {
+public class VerifyEmailResponse {
 
-    private Long userId;
-    private String firstName;
-    private String lastName;
-    private String email;
-    private String contact;
     private String message;
 }
