@@ -62,6 +62,8 @@ export class SearchableDropdownComponent<V extends string | number = number>
   readonly createLabel = input<string>('Create');
   readonly createHandler = input<((term: string) => Observable<SearchableOption<V>>) | null>(null);
   readonly deleteHandler = input<((option: SearchableOption<V>) => Observable<void>) | null>(null);
+  /** Multi-select mode: emits arrays of values and renders selected chips. */
+  readonly multiple = input<boolean>(false);
 
   private readonly inputEl = viewChild<ElementRef<HTMLInputElement>>('filterInput');
 
@@ -75,8 +77,9 @@ export class SearchableDropdownComponent<V extends string | number = number>
 
   private readonly localOptions = signal<SearchableOption<V>[]>([]);
   readonly selected = signal<V | null>(null);
+  readonly selectedMulti = signal<V[]>([]);
 
-  private onChangeFn: (value: V | null) => void = () => {};
+  private onChangeFn: (value: V | null | V[]) => void = () => {};
   private onTouchedFn: () => void = () => {};
 
   /** Row list rendered inside the open panel: optional create row + matches. */
@@ -99,17 +102,36 @@ export class SearchableDropdownComponent<V extends string | number = number>
     return found?.name ?? '';
   });
 
+  readonly isMulti = computed(() => this.multiple() && !this.disabled());
+
+  readonly selectedLabels = computed(() => {
+    if (!this.isMulti()) return [];
+    const labels = this.selectedMulti()
+      .map((v) => this.localOptions().find((o) => String(o.value) === String(v))?.name)
+      .filter((n): n is string => !!n);
+    return this.selectedMulti().map((v, i) => ({
+      value: v,
+      label: labels[i] ?? String(v),
+    }));
+  });
+
   // ------------------------------------------------------------------
   // ControlValueAccessor
   // ------------------------------------------------------------------
 
-  writeValue(value: V | null | undefined): void {
-    this.selected.set((value ?? null) as V | null);
+  writeValue(value: V | V[] | null | undefined): void {
+    if (Array.isArray(value)) {
+      this.selectedMulti.set(value);
+      this.selected.set(null);
+    } else {
+      this.selected.set((value ?? null) as V | null);
+      this.selectedMulti.set([]);
+    }
     this.query.set('');
     this.highlight.set(-1);
   }
 
-  registerOnChange(fn: (value: V | null) => void): void {
+  registerOnChange(fn: (value: V | null | V[]) => void): void {
     this.onChangeFn = fn;
   }
 
@@ -179,6 +201,19 @@ export class SearchableDropdownComponent<V extends string | number = number>
   }
 
   select(option: AnyOption): void {
+    if (this.multiple()) {
+      const value = option.value as V;
+      const current = this.selectedMulti();
+      const next = current.some((v) => String(v) === String(value))
+        ? current.filter((v) => String(v) !== String(value))
+        : [...current, value];
+      this.selectedMulti.set(next);
+      this.onChangeFn(next);
+      this.query.set('');
+      this.highlight.set(-1);
+      this.onTouchedFn();
+      return;
+    }
     this.selected.set(option.value as V);
     this.onChangeFn(option.value as V);
     this.query.set('');
@@ -187,9 +222,24 @@ export class SearchableDropdownComponent<V extends string | number = number>
     this.onTouchedFn();
   }
 
+  removeChip(value: V, event: Event): void {
+    event.stopPropagation();
+    if (this.disabled()) return;
+    const next = this.selectedMulti().filter((v) => String(v) !== String(value));
+    this.selectedMulti.set(next);
+    this.onChangeFn(next);
+    if (next.length === 0) this.close();
+  }
+
   clear(event?: Event): void {
     event?.stopPropagation();
     if (this.disabled()) return;
+    if (this.multiple()) {
+      this.selectedMulti.set([]);
+      this.onChangeFn([]);
+      this.query.set('');
+      return;
+    }
     this.selected.set(null);
     this.onChangeFn(null);
     this.query.set('');
@@ -243,6 +293,11 @@ export class SearchableDropdownComponent<V extends string | number = number>
           this.selected.set(null);
           this.onChangeFn(null);
         }
+        if (this.multiple()) {
+          const next = this.selectedMulti().filter((v) => String(v) !== String(option.value));
+          this.selectedMulti.set(next);
+          this.onChangeFn(next);
+        }
       },
       error: () => {
         // Option stays; the feature service toasted the backend message.
@@ -278,6 +333,11 @@ export class SearchableDropdownComponent<V extends string | number = number>
   /** Stable track key: delete buttons re-render only when the option changes. */
   trackRow(row: Row): string {
     return this.isCreateRow(row) ? `create:${this.query()}` : `opt:${row.value}`;
+  }
+
+  /** Multi-select: is a given option currently chosen? */
+  isMultiSelected(value: string | number): boolean {
+    return this.selectedMulti().some((v) => String(v) === String(value));
   }
 
   onTouched(): void {

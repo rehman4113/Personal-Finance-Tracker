@@ -11,6 +11,15 @@
 
   &__inner {
     text-align: center;
+    width: min(420px, 90%);
+  }
+
+  &__skeleton {
+    text-align: left;
+
+    .pfm-skeleton--card {
+      width: 100%;
+    }
   }
 
   &__message {

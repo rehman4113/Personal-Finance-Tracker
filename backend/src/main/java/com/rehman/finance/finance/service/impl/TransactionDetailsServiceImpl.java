@@ -12,8 +12,11 @@ import com.rehman.finance.finance.repository.LedgerEntryRepository;
 import com.rehman.finance.finance.repository.TransactionDetailsRepository;
 import com.rehman.finance.finance.repository.WalletRepository;
 import com.rehman.finance.finance.service.TransactionDetailsService;
+import com.rehman.finance.response.PageResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -79,10 +82,11 @@ public class TransactionDetailsServiceImpl implements TransactionDetailsService 
 
     @Override
     @Transactional(readOnly = true)
-    public List<TransactionDetailResponse> getTransactionDetailsByUserId(Long userId) {
-        return transactionDetailsRepository.findByUserId(userId).stream()
-                .map(this::toResponse)
-                .toList();
+    public PageResponse<TransactionDetailResponse> getTransactionDetailsByUserId(Long userId, int page, int size) {
+        int safeSize = Math.min(Math.max(size, 1), PageResponse.MAX_PAGE_SIZE);
+        int safePage = Math.max(page, 0);
+        Page<TransactionDetails> detailsPage = transactionDetailsRepository.findByUserId(userId, PageRequest.of(safePage, safeSize));
+        return PageResponse.from(detailsPage, this::toResponse);
     }
 
     @Override

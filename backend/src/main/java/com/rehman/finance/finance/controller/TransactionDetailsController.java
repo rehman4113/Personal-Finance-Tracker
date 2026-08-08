@@ -5,6 +5,7 @@ import com.rehman.finance.finance.api.FinanceApi;
 import com.rehman.finance.finance.dto.response.TransactionDetailResponse;
 import com.rehman.finance.finance.service.TransactionDetailsService;
 import com.rehman.finance.response.ApiResponse;
+import com.rehman.finance.response.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -36,15 +37,17 @@ public class TransactionDetailsController {
                 transactionDetailsService.getTransactionDetailsById(currentUser.getUserId(), id)));
     }
 
-    @Operation(summary = "Get all transaction details for a user")
+    @Operation(summary = "Get all transaction details for a user (paginated)")
     @ApiResponses(value = {
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "List of transaction details")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Paginated list of transaction details")
     })
     @GetMapping
-    public ResponseEntity<ApiResponse<List<TransactionDetailResponse>>> getUserTransactionDetails(
-            @AuthenticationPrincipal UserPrincipal currentUser) {
+    public ResponseEntity<ApiResponse<PageResponse<TransactionDetailResponse>>> getUserTransactionDetails(
+            @AuthenticationPrincipal UserPrincipal currentUser,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
         return ResponseEntity.ok(ApiResponse.success(
-                transactionDetailsService.getTransactionDetailsByUserId(currentUser.getUserId())));
+                transactionDetailsService.getTransactionDetailsByUserId(currentUser.getUserId(), page, size)));
     }
 
     @Operation(summary = "Get transaction details by user ID and transaction history ID")

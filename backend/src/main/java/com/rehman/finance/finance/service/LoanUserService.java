@@ -1,9 +1,9 @@
 package com.rehman.finance.finance.service;
 
 import com.rehman.finance.finance.dto.request.LoanUserRequest;
+import com.rehman.finance.finance.dto.response.LoanTotalsResponse;
 import com.rehman.finance.finance.dto.response.LoanUserResponse;
-
-import java.util.List;
+import com.rehman.finance.response.PageResponse;
 
 public interface LoanUserService {
 
@@ -11,8 +11,10 @@ public interface LoanUserService {
 
     LoanUserResponse getLoanUser(Long userId, Long loanUserId);
 
-    List<LoanUserResponse> getUserLoanUsers(Long userId);
+    PageResponse<LoanUserResponse> getUserLoanUsers(Long userId, int page, int size);
 
     LoanUserResponse updateLoanUser(Long userId, Long loanUserId, LoanUserRequest request);
+
+    LoanTotalsResponse getLoanTotals(Long userId);
 
 }

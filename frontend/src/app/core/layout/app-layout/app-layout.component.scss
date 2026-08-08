@@ -9,12 +9,9 @@ $content-trend-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    margin-left: var(--pfm-sidebar-w);
-    transition: margin-left 0.24s ease;
-  }
-
-  &.app-shell--collapsed .app-shell__main {
-    margin-left: var(--pfm-sidebar-w-collapsed);
+    /* Top bar is fixed — reserve its full height (incl. safe-area) so page
+       content never slides underneath it. */
+    padding-top: calc(var(--pfm-topbar-h) + env(safe-area-inset-top));
   }
 
   &__content {
@@ -49,13 +46,9 @@ $content-trend-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000
   }
 }
 
-/* Mobile: sidebar becomes an off-canvas drawer — content spans full width. */
+/* Mobile: compact content breathing room above the bottom nav. */
 @media (max-width: 767.98px) {
-  .app-shell__main {
-    margin-left: 0;
-  }
-
   .app-shell__content {
-    padding: 1rem 1rem 2rem;
+    padding: 1rem 1rem calc(4.75rem + env(safe-area-inset-bottom));
   }
 }

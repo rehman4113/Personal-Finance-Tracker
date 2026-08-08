@@ -1,0 +1,49 @@
+/* Mobile-only bottom navigation — hidden on desktop/tablet.
+   WHY: fixed to the viewport with safe-area inset for iOS home-indicator. */
+.bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1045;
+  display: none;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  background: #0d1626;
+  border-top: 1px solid var(--pfm-card-border);
+  box-shadow: 0 -8px 24px rgba(8, 15, 30, 0.35);
+  padding-bottom: env(safe-area-inset-bottom);
+
+  &__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.55rem 0.25rem 0.45rem;
+    color: var(--pfm-text-muted);
+    text-decoration: none;
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    transition: color 0.15s ease, background-color 0.15s ease;
+
+    i {
+      font-size: 1.15rem;
+      line-height: 1;
+    }
+
+    &:active {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    &--active {
+      color: var(--pfm-primary);
+    }
+  }
+}
+
+@media (max-width: 767.98px) {
+  .bottom-nav {
+    display: grid;
+  }
+}

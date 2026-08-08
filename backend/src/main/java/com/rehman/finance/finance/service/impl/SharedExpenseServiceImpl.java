@@ -11,8 +11,11 @@ import com.rehman.finance.finance.entity.SharedExpenseMember;
 import com.rehman.finance.finance.repository.SharedExpenseMemberRepository;
 import com.rehman.finance.finance.repository.SharedExpenseRepository;
 import com.rehman.finance.finance.service.SharedExpenseService;
+import com.rehman.finance.response.PageResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -92,13 +95,14 @@ public class SharedExpenseServiceImpl implements SharedExpenseService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<SharedExpenseResponse> getUserSharedExpenses(Long userId) {
-        return sharedExpenseRepository.findByUserId(userId).stream()
-                .map(expense -> {
-                    List<SharedExpenseMember> members = sharedExpenseMemberRepository.findBySharedExpenseId(expense.getId());
-                    return toResponse(expense, members);
-                })
-                .toList();
+    public PageResponse<SharedExpenseResponse> getUserSharedExpenses(Long userId, int page, int size) {
+        int safeSize = Math.min(Math.max(size, 1), PageResponse.MAX_PAGE_SIZE);
+        int safePage = Math.max(page, 0);
+        Page<SharedExpense> expensePage = sharedExpenseRepository.findByUserId(userId, PageRequest.of(safePage, safeSize));
+        return PageResponse.from(expensePage, expense -> {
+            List<SharedExpenseMember> members = sharedExpenseMemberRepository.findBySharedExpenseId(expense.getId());
+            return toResponse(expense, members);
+        });
     }
 
     @Override

@@ -1,5 +1,4 @@
 import { Component, input, model } from '@angular/core';
-import { LoadingSpinnerComponent } from '../loading-spinner/loading-spinner.component';
 
 /**
  * Right-side slide-over drawer (transaction details, ledger, quick forms).
@@ -9,7 +8,6 @@ import { LoadingSpinnerComponent } from '../loading-spinner/loading-spinner.comp
 @Component({
   selector: 'app-drawer',
   standalone: true,
-  imports: [LoadingSpinnerComponent],
   template: `
     @if (open()) {
       <div class="drawer" [class]="'drawer--' + size()">
@@ -28,7 +26,12 @@ import { LoadingSpinnerComponent } from '../loading-spinner/loading-spinner.comp
           </header>
           <div class="drawer__body">
             @if (loading()) {
-              <app-loading-spinner message="Loading…" />
+              <!-- Themed card-shaped shimmer while content loads — no spinner. -->
+              <div class="drawer__skeleton" role="status" aria-live="polite">
+                <div class="pfm-skeleton pfm-skeleton--card" style="height: 9rem;"></div>
+                <div class="pfm-skeleton pfm-skeleton--card" style="height: 5.5rem; margin-top: 0.8rem;"></div>
+                <span class="visually-hidden">Loading…</span>
+              </div>
             } @else {
               <ng-content />
             }

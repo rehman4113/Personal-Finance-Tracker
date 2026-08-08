@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
@@ -13,6 +13,7 @@ import { FINANCE_ROUTES } from '../../../../core/constants/finance-routes.consta
 import { buildTransactionColumns } from '../../config/transaction-table.config';
 import { TransactionDetailComponent } from '../transaction-detail/transaction-detail.component';
 import { LedgerDrawerComponent } from '../ledger-drawer/ledger-drawer.component';
+import { exportToCsv } from '../../../../shared/utils/csv.utils';
 
 @Component({
   selector: 'app-transaction-list',
@@ -41,12 +42,17 @@ import { LedgerDrawerComponent } from '../ledger-drawer/ledger-drawer.component'
           </div>
           <app-data-table
             [columns]="columns()"
-            [rows]="filteredRows()"
+            [rows]="pageRows()"
             [loading]="tableLoading()"
             [actions]="rowActions"
             [exportName]="exportName()"
             [emptyMessage]="'No ' + config().title.toLowerCase() + ' found'"
+            [serverMode]="true"
+            [totalElements]="totalElements()"
+            [(page)]="page"
+            [(pageSize)]="pageSize"
             (action)="onAction($event)"
+            (exportRequest)="onExportAll()"
           />
         </div>
       </div>
@@ -70,9 +76,14 @@ export class TransactionListComponent implements OnInit {
   readonly columns = computed(() => buildTransactionColumns(this.mode(), this.service));
   readonly search = signal('');
   readonly filters = signal<FilterValues>({});
+  readonly page = signal(1);
+  readonly pageSize = signal(20);
   readonly tableLoading = signal(true);
   readonly selectedId = signal<number | null>(null);
   readonly ledgerId = signal<number | null>(null);
+
+  readonly pageRows = computed(() => this.service.transactionsPage()?.content ?? []);
+  readonly totalElements = computed(() => this.service.transactionsPage()?.totalElements ?? 0);
 
   readonly rowActions: TableAction<TransactionDto>[] = [
     { key: 'view', label: 'View details', icon: 'bi-eye', cls: 'text-primary' },
@@ -124,54 +135,75 @@ export class TransactionListComponent implements OnInit {
     return fields;
   });
 
-  readonly filteredRows = computed(() => {
-    let rows = this.service.transactions() ?? [];
-    const mode = this.mode();
-    if (mode !== 'ALL') rows = rows.filter((t) => t.transactionTypeCode === mode);
+  constructor() {
+    // Page token resets to 1 whenever a NEW search term lands (SearchBar debounces).
+    effect(() => {
+      const term = this.search();
+      if (term !== this.lastSearchTerm) {
+        this.lastSearchTerm = term;
+        if (this.page() !== 1) this.page.set(1);
+      }
+    });
+    // Server reload — fire once started AND whenever filters, search, mode, page or pageSize change.
+    effect(() => {
+      this.filters();
+      this.search();
+      this.mode();
+      this.page();
+      this.pageSize();
+      if (!this.started()) return;
+      this.reload();
+    });
+  }
 
-    const f = this.filters();
-    if (f['from']) rows = rows.filter((t) => (t.transactionDate ?? '').slice(0, 10) >= String(f['from']));
-    if (f['to']) rows = rows.filter((t) => (t.transactionDate ?? '').slice(0, 10) <= String(f['to']));
-    if (f['type']) rows = rows.filter((t) => t.transactionTypeCode === f['type']);
-    if (f['purposeId']) rows = rows.filter((t) => t.transactionPurposeCode === f['purposeId']);
-    if (f['subcategoryId']) rows = rows.filter((t) => t.subcategoryCode === f['subcategoryId']);
-    if (f['walletId']) {
-      const wid = Number(f['walletId']);
-      rows = rows.filter((t) =>
-        (t.walletEntries ?? []).some(
-          (e) => e.walletId === wid || e.sourceWalletId === wid || e.destinationWalletId === wid,
-        ),
-      );
-    }
-    if (f['status']) rows = rows.filter((t) => t.transactionStatusCode === f['status']);
-
-    const term = this.search().trim().toLowerCase();
-    if (term) {
-      rows = rows.filter((t) =>
-        [t.personName, t.merchant, t.description, t.referenceNumber, t.notes]
-          .concat(this.service.purposeNameByCode(t.transactionPurposeCode))
-          .some((v) => v?.toLowerCase().includes(term)),
-      );
-    }
-    return rows;
-  });
+  private readonly started = signal(false);
+  private lastSearchTerm = '';
 
   ngOnInit(): void {
     this.route.data.subscribe((data) => this.mode.set((data['mode'] as TransactionMode) ?? 'ALL'));
     this.service.loadMasterData();
-    this.reload();
+    this.started.set(true);
+  }
+
+  private buildQueryParams() {
+    const f = this.filters();
+    const fromPanel = String(f['type'] ?? '');
+    const type = fromPanel || (this.mode() !== 'ALL' ? this.mode() : undefined);
+    return {
+      page: this.page() - 1,
+      size: this.pageSize(),
+      type,
+      status: String(f['status'] ?? '') || undefined,
+      purpose: String(f['purposeId'] ?? '') || undefined,
+      subcategory: String(f['subcategoryId'] ?? '') || undefined,
+      walletId: f['walletId'] != null ? Number(f['walletId']) : undefined,
+      from: String(f['from'] ?? '') || undefined,
+      to: String(f['to'] ?? '') || undefined,
+      search: this.search().trim() || undefined,
+    };
   }
 
   private reload(): void {
     this.tableLoading.set(true);
     this.service
-      .loadTransactions()
+      .loadTransactionsPage(this.buildQueryParams())
       .pipe(finalize(() => this.tableLoading.set(false)))
-      .subscribe();
+      .subscribe({ error: () => undefined });
   }
 
   onFilters(values: FilterValues): void {
     this.filters.set(values);
+    this.page.set(1);
+  }
+
+  onExportAll(): void {
+    this.service.exportTransactionsPage(this.buildQueryParams()).subscribe({
+      next: (rows) => {
+        const cols = this.columns();
+        exportToCsv(this.exportName(), cols.map((c) => ({ header: c.label, value: (row) => c.cell(row as TransactionDto) })), rows);
+      },
+      error: () => undefined,
+    });
   }
 
   goCreate(): void {

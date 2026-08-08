@@ -21,4 +21,8 @@ public class UserProfileResponse {
     private String status;
     private boolean emailVerified;
     private boolean demo;
+/** Curated avatar id (1..6) — null when the user has no curated avatar. */
+    private Long profileIconId;
+    /** Uploaded profile picture URL — null when the user has no photo. */
+    private String profilePictureUrl;
 }

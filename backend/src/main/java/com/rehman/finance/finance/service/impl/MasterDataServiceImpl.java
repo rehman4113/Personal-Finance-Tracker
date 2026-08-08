@@ -29,7 +29,7 @@ public class MasterDataServiceImpl implements MasterDataService {
     @Transactional(readOnly = true)
     public MasterDataResponse getAllMasterData(Long userId) {
         List<SimpleMasterItem> walletTypes = walletTypeRepository.findAll().stream()
-                .filter(wt -> wt.getUserId() == null)
+                .filter(wt -> wt.getUserId() == null || wt.getUserId().equals(userId))
                 .filter(wt -> Boolean.TRUE.equals(wt.getActive()))
                 .map(wt -> SimpleMasterItem.builder()
                         .id(wt.getId())
@@ -37,6 +37,7 @@ public class MasterDataServiceImpl implements MasterDataService {
                         .name(wt.getName())
                         .description(wt.getDescription())
                         .active(wt.getActive())
+                        .userId(wt.getUserId())
                         .build())
                 .toList();
 

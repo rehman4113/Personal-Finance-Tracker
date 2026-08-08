@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="avatar-teen">
+  <rect width="96" height="96" fill="#d8f7d5"/>
+  <path d="M18 96 V68 Q18 56 32 52 H64 Q78 56 78 68 V96 Z" fill="#3f9f4f"/>
+  <path d="M41 45 Q48 55 55 45 Q48 42 41 45 Z" fill="#ffdfb3"/>
+  <rect x="41" y="44" width="14" height="12" rx="5" fill="#ffdfb3"/>
+  <circle cx="48" cy="36" r="20" fill="#ffdfb3"/>
+  <circle cx="29" cy="37" r="5.5" fill="#ffdfb3"/>
+  <circle cx="67" cy="37" r="5.5" fill="#ffdfb3"/>
+  <circle cx="71" cy="15" r="8.5" fill="#2f2f3d"/>
+  <path d="M63 22 Q72 8 79 18 Q75 26 66 26 Z" fill="#2f2f3d"/>
+  <path d="M27 38 Q27 13 48 13 Q69 13 69 38 L69 28 Q60 18 50 20 Q42 18 35 22 Q27 26 27 38 Z" fill="#2f2f3d"/>
+  <rect x="26" y="26" width="44" height="7" rx="3.5" fill="#ff4655"/>
+  <circle cx="40" cy="39" r="4.8" fill="#ffffff"/>
+  <circle cx="56" cy="39" r="4.8" fill="#ffffff"/>
+  <circle cx="41" cy="40" r="2.6" fill="#3b2415"/>
+  <circle cx="57" cy="40" r="2.6" fill="#3b2415"/>
+  <circle cx="42.8" cy="38" r="1.4" fill="#ffffff"/>
+  <circle cx="58.8" cy="38" r="1.4" fill="#ffffff"/>
+  <path d="M42 50 Q48 55 54 50" fill="none" stroke="#7a2f2f" stroke-width="2" stroke-linecap="round"/>
+  <ellipse cx="32" cy="45" rx="3.6" ry="2.4" fill="#ff9d7a" opacity="0.6"/>
+  <ellipse cx="64" cy="45" rx="3.6" ry="2.4" fill="#ff9d7a" opacity="0.6"/>
+</svg>

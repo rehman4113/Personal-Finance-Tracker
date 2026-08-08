@@ -6,6 +6,7 @@ import com.rehman.finance.finance.dto.request.SharedExpenseRequest;
 import com.rehman.finance.finance.dto.response.SharedExpenseResponse;
 import com.rehman.finance.finance.service.SharedExpenseService;
 import com.rehman.finance.response.ApiResponse;
+import com.rehman.finance.response.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -15,8 +16,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Tag(name = "Shared Expense Management", description = "Endpoints for managing shared expenses and bill splitting")
 @RestController
@@ -51,14 +50,16 @@ public class SharedExpenseController {
         return ResponseEntity.ok(ApiResponse.success(sharedExpenseService.getSharedExpense(currentUser.getUserId(), id)));
     }
 
-    @Operation(summary = "Get all user shared expenses")
+    @Operation(summary = "Get all user shared expenses (paginated)")
     @ApiResponses(value = {
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "List of shared expenses")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Paginated list of shared expenses")
     })
     @GetMapping
-    public ResponseEntity<ApiResponse<List<SharedExpenseResponse>>> getUserSharedExpenses(
-            @AuthenticationPrincipal UserPrincipal currentUser) {
-        return ResponseEntity.ok(ApiResponse.success(sharedExpenseService.getUserSharedExpenses(currentUser.getUserId())));
+    public ResponseEntity<ApiResponse<PageResponse<SharedExpenseResponse>>> getUserSharedExpenses(
+            @AuthenticationPrincipal UserPrincipal currentUser,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(ApiResponse.success(sharedExpenseService.getUserSharedExpenses(currentUser.getUserId(), page, size)));
     }
 
     @Operation(summary = "Settle a member's share")

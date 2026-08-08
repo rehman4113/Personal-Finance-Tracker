@@ -56,7 +56,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.PUT, "/api/v1/auth/profile").authenticated()
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/auth/demo-complete").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/profile/picture").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/auth/profile/picture").authenticated()
                         .requestMatchers(PUBLIC_URLS).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/finance/master/**").permitAll()
                         .requestMatchers("/api/v1/finance/**").authenticated()
                         .anyRequest().authenticated()

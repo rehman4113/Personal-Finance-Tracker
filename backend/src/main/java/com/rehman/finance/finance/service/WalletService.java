@@ -2,8 +2,7 @@ package com.rehman.finance.finance.service;
 
 import com.rehman.finance.finance.dto.request.WalletRequest;
 import com.rehman.finance.finance.dto.response.WalletResponse;
-
-import java.util.List;
+import com.rehman.finance.response.PageResponse;
 
 public interface WalletService {
 
@@ -14,7 +13,7 @@ public interface WalletService {
 
     WalletResponse getWallet(Long userId, Long walletId);
 
-    List<WalletResponse> getUserWallets(Long userId);
+    PageResponse<WalletResponse> getUserWallets(Long userId, int page, int size);
 
     WalletResponse updateWallet(Long userId, Long walletId, WalletRequest request);
 

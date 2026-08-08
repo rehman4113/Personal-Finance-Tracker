@@ -49,6 +49,14 @@ public class User {
     @Builder.Default
     private Boolean demo = false;
 
+    /** Curated avatar id (1..6) from pf_profile_avatars. */
+    @Column(name = "profile_icon_id")
+    private Long profileAvatarId;
+
+    /** Uploaded profile picture URL (takes precedence over the curated avatar). */
+    @Column(name = "profile_picture_url", length = 500)
+    private String profilePictureUrl;
+
     @Column(length = 6)
     private String otp;
 

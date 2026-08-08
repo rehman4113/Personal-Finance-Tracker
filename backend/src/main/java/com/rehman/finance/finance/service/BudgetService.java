@@ -2,8 +2,7 @@ package com.rehman.finance.finance.service;
 
 import com.rehman.finance.finance.dto.request.BudgetRequest;
 import com.rehman.finance.finance.dto.response.BudgetResponse;
-
-import java.util.List;
+import com.rehman.finance.response.PageResponse;
 
 public interface BudgetService {
 
@@ -11,7 +10,7 @@ public interface BudgetService {
 
     BudgetResponse getBudget(Long userId, Long budgetId);
 
-    List<BudgetResponse> getUserBudgetsForMonth(Long userId, String month);
+    PageResponse<BudgetResponse> getUserBudgetsForMonth(Long userId, String month, int page, int size);
 
     BudgetResponse updateBudget(Long userId, Long budgetId, BudgetRequest request);
 

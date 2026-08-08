@@ -18,12 +18,15 @@ import com.rehman.finance.auth.dto.response.ResendOtpResponse;
 import com.rehman.finance.auth.dto.response.ResetPasswordResponse;
 import com.rehman.finance.auth.dto.response.UserProfileResponse;
 import com.rehman.finance.auth.dto.response.VerifyEmailResponse;
+import com.rehman.finance.auth.dto.response.ProfileAvatarResponse;
 import com.rehman.finance.auth.entity.EmailOutbox;
+import com.rehman.finance.auth.entity.ProfileAvatar;
 import com.rehman.finance.auth.entity.RefreshToken;
 import com.rehman.finance.auth.entity.User;
 import com.rehman.finance.auth.enums.AuthErrorCode;
 import com.rehman.finance.auth.jwt.JwtService;
 import com.rehman.finance.auth.repository.EmailOutboxRepository;
+import com.rehman.finance.auth.repository.ProfileAvatarRepository;
 import com.rehman.finance.auth.repository.RefreshTokenRepository;
 import com.rehman.finance.auth.repository.UserRepository;
 import com.rehman.finance.auth.security.CustomUserDetailsService;
@@ -33,6 +36,7 @@ import com.rehman.finance.exception.BusinessException;
 import com.rehman.finance.finance.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
@@ -41,10 +45,20 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -62,11 +76,21 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final EmailOutboxRepository emailOutboxRepository;
+    private final ProfileAvatarRepository profileAvatarRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final CustomUserDetailsService customUserDetailsService;
     private final WalletService walletService;
+
+    /** Directory for uploadPicture storage — resolved to an absolute path at
+     *  construction so the file-based resolution is always stable. */
+    @Value("${app.upload-dir:./uploads}")
+    private String uploadDirProperty;
+
+    /** Allowed profile picture content types + their file extensions. */
+    private static final Set<String> ALLOWED_IMAGE_TYPES = Set.of(
+            "image/png", "image/jpeg", "image/webp", "image/gif");
 
     @Override
     @Transactional
@@ -399,6 +423,7 @@ public class AuthServiceImpl implements AuthService {
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
         user.setPhoneNumber(combineContact(request.getCountryCode(), request.getPhoneNumber()));
+        user.setProfileAvatarId(request.getProfileIconId());
 
         if (emailChanged) {
             // The previous emailVerified flag belonged to the old address, so
@@ -427,6 +452,103 @@ public class AuthServiceImpl implements AuthService {
         return toProfileResponse(user);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProfileAvatarResponse> getAvatars() {
+        return profileAvatarRepository.findAllByOrderByIdAsc().stream()
+                .map(this::toAvatarResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public UserProfileResponse uploadProfilePicture(Long userId, MultipartFile file) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(AuthErrorCode.USER_NOT_FOUND));
+
+        if (file == null || file.isEmpty()) {
+            throw new BusinessException(AuthErrorCode.INVALID_REQUEST);
+        }
+
+        String contentType = file.getContentType() == null ? "" : file.getContentType().toLowerCase(Locale.ROOT);
+        String extension = switch (contentType) {
+            case "image/png" -> "png";
+            case "image/jpeg" -> "jpg";
+            case "image/webp" -> "webp";
+            case "image/gif" -> "gif";
+            default -> throw new BusinessException(AuthErrorCode.INVALID_IMAGE_TYPE);
+        };
+
+        try {
+            Path dir = Paths.get(uploadDirProperty).toAbsolutePath().normalize()
+                    .resolve("avatars");
+            Files.createDirectories(dir);
+
+            Path target = dir.resolve("user-" + userId + "." + extension);
+
+            // Replace any previous upload and clean up stale files of other
+            // extensions so the disk never holds multiple copies.
+            for (String oldType : ALLOWED_IMAGE_TYPES) {
+                Path old = dir.resolve("user-" + userId + "." + extensionOf(oldType));
+                Files.deleteIfExists(old);
+            }
+            try (InputStream in = file.getInputStream()) {
+                Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
+            }
+
+            user.setProfilePictureUrl("/uploads/avatars/user-" + userId + "." + extension);
+            userRepository.save(user);
+            log.info("Profile picture uploaded for user id={}", userId);
+
+            return toProfileResponse(user);
+        } catch (IOException e) {
+            log.error("Could not store profile picture for user id={}", userId, e);
+            throw new BusinessException(AuthErrorCode.IMAGE_STORAGE_FAILED);
+        }
+    }
+
+    @Override
+    @Transactional
+    public UserProfileResponse removeProfilePicture(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(AuthErrorCode.USER_NOT_FOUND));
+
+        if (user.getProfilePictureUrl() != null) {
+            try {
+                for (String ext : ALLOWED_IMAGE_TYPES) {
+                    Path old = Paths.get("uploads", "avatars", "user-" + userId + "." + ext);
+                    Files.deleteIfExists(old);
+                }
+            } catch (IOException e) {
+                log.warn("Could not delete profile picture files for user id={}", userId, e);
+            }
+            user.setProfilePictureUrl(null);
+            userRepository.save(user);
+            log.info("Profile picture removed for user id={}", userId);
+        }
+
+        return toProfileResponse(user);
+    }
+
+    private String extensionOf(String contentType) {
+        return switch (contentType) {
+            case "image/jpeg" -> "jpg";
+            case "image/png" -> "png";
+            case "image/webp" -> "webp";
+            case "image/gif" -> "gif";
+            default -> "bin";
+        };
+    }
+
+    private ProfileAvatarResponse toAvatarResponse(ProfileAvatar avatar) {
+        return ProfileAvatarResponse.builder()
+                .id(avatar.getId())
+                .code(avatar.getCode())
+                .name(avatar.getName())
+                .assetPath(avatar.getAssetPath())
+                .build();
+    }
+
     private UserProfileResponse toProfileResponse(User user) {
         return UserProfileResponse.builder()
                 .userId(user.getId())
@@ -437,6 +559,8 @@ public class AuthServiceImpl implements AuthService {
                 .status(user.getStatus())
                 .emailVerified(user.getEmailVerified())
                 .demo(Boolean.TRUE.equals(user.getDemo()))
+                .profileIconId(user.getProfileAvatarId())
+                .profilePictureUrl(user.getProfilePictureUrl())
                 .build();
     }
 

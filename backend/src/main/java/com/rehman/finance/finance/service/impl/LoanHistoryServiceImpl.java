@@ -6,12 +6,16 @@ import com.rehman.finance.finance.dto.response.LoanHistoryResponse;
 import com.rehman.finance.finance.entity.*;
 import com.rehman.finance.finance.repository.*;
 import com.rehman.finance.finance.service.LoanHistoryService;
+import com.rehman.finance.response.PageResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -101,7 +105,7 @@ public class LoanHistoryServiceImpl implements LoanHistoryService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<LoanHistoryResponse> getLoanHistoryByUser(Long userId, Long loanUserId) {
+    public PageResponse<LoanHistoryResponse> getLoanHistoryByUser(Long userId, Long loanUserId, int page, int size) {
         LoanUser loanUser = loanUserRepository.findById(loanUserId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.LOAN_USER_NOT_FOUND));
 
@@ -109,15 +113,55 @@ public class LoanHistoryServiceImpl implements LoanHistoryService {
             throw new BusinessException(ErrorCode.ACCESS_DENIED);
         }
 
-        return loanHistoryRepository.findByLoanUserIdOrderByCreatedAtDesc(loanUserId).stream()
-                .map(this::toResponse)
-                .toList();
+        int safeSize = Math.min(Math.max(size, 1), PageResponse.MAX_PAGE_SIZE);
+        int safePage = Math.max(page, 0);
+        Page<LoanHistory> historyPage = loanHistoryRepository.findByLoanUserIdOrderByCreatedAtDesc(
+                loanUserId, PageRequest.of(safePage, safeSize));
+        return PageResponse.from(historyPage, this::toResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<LoanHistoryResponse> getLoanHistory(Long userId, Long loanUserId, String status, String from, String to, int page, int size) {
+        int safeSize = Math.min(Math.max(size, 1), PageResponse.MAX_PAGE_SIZE);
+        int safePage = Math.max(page, 0);
+        PageRequest pageable = PageRequest.of(safePage, safeSize);
+
+        if (loanUserId != null) {
+            LoanUser loanUser = loanUserRepository.findById(loanUserId)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.LOAN_USER_NOT_FOUND));
+            if (!loanUser.getUserId().equals(userId)) {
+                throw new BusinessException(ErrorCode.ACCESS_DENIED);
+            }
+        }
+
+        String statusCode = (status == null || status.isBlank()) ? null : status.trim().toUpperCase();
+        LocalDateTime fromTime = parseDateTime(from);
+        LocalDateTime toTime = parseDateTime(to);
+
+        Page<LoanHistory> historyPage = loanHistoryRepository.search(
+                userId, loanUserId, statusCode, fromTime, toTime, pageable);
+        return PageResponse.from(historyPage, this::toResponse);
+    }
+
+    private LocalDateTime parseDateTime(String value) {
+        if (value == null || value.isBlank()) return null;
+        try {
+            return LocalDateTime.parse(value.trim());
+        } catch (Exception e) {
+            try {
+                return java.time.LocalDate.parse(value.trim()).atStartOfDay();
+            } catch (Exception ex) {
+                return null;
+            }
+        }
     }
 
     private LoanHistoryResponse toResponse(LoanHistory history) {
         return LoanHistoryResponse.builder()
                 .id(history.getId())
                 .loanUserId(history.getLoanUser().getId())
+                .loanUserName(history.getLoanUser().getFullName())
                 .transactionHistoryId(history.getTransactionHistory() != null ? history.getTransactionHistory().getId() : null)
                 .transactionDetailId(history.getTransactionDetail() != null ? history.getTransactionDetail().getId() : null)
                 .amount(history.getAmount())

@@ -26,8 +26,7 @@ export const NAV_MENU: NavItem[] = [
     ],
   },
   { label: 'Wallets', icon: 'bi-wallet', route: FINANCE_ROUTES.WALLETS },
+  { label: 'Loan Users', icon: 'bi-people', route: FINANCE_ROUTES.LOAN_USERS },
   { label: 'Budgets', icon: 'bi-pie-chart', route: FINANCE_ROUTES.BUDGETS },
   { label: 'Reports', icon: 'bi-bar-chart-line', route: FINANCE_ROUTES.REPORTS },
-  { label: 'Settings', icon: 'bi-gear', route: FINANCE_ROUTES.SETTINGS },
-  { label: 'Logout', icon: 'bi-box-arrow-right', action: 'logout' },
 ];

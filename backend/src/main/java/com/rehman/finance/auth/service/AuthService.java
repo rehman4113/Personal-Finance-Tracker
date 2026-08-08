@@ -18,6 +18,10 @@ import com.rehman.finance.auth.dto.response.ResendOtpResponse;
 import com.rehman.finance.auth.dto.response.ResetPasswordResponse;
 import com.rehman.finance.auth.dto.response.UserProfileResponse;
 import com.rehman.finance.auth.dto.response.VerifyEmailResponse;
+import com.rehman.finance.auth.dto.response.ProfileAvatarResponse;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 public interface AuthService {
 
@@ -42,4 +46,21 @@ public interface AuthService {
     UserProfileResponse updateProfile(Long userId, UpdateProfileRequest request);
 
     DemoCompleteResponse markDemoComplete(Long userId);
+
+    /**
+     * The 6 curated avatar options (stable id + asset reference).
+     */
+    List<ProfileAvatarResponse> getAvatars();
+
+    /**
+     * Stores the uploaded profile picture for the user and returns the
+     * updated profile (profilePictureUrl now points at the stored file).
+     */
+    UserProfileResponse uploadProfilePicture(Long userId, MultipartFile file);
+
+    /**
+     * Clears the uploaded profile picture (the user falls back to their
+     * curated avatar, or initials).
+     */
+    UserProfileResponse removeProfilePicture(Long userId);
 }

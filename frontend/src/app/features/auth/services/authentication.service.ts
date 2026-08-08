@@ -1,7 +1,7 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, tap, catchError, throwError, finalize } from 'rxjs';
+import { Observable, tap, catchError, throwError, finalize, map } from 'rxjs';
 import { APP_CONFIG } from '../../../core/config/app.config';
 import { User } from '../../../core/models/user.model';
 import { TokenInfo } from '../../../core/models/token-info.model';
@@ -24,6 +24,7 @@ import { VerifyEmailResponse } from '../dto/response/verify-email-response.dto';
 import { RefreshTokenResponse, RefreshTokenResponseData } from '../dto/response/refresh-token-response.dto';
 import { LogoutResponse } from '../dto/response/logout-response.dto';
 import { ApiResponse } from '../dto/response/api-response.dto';
+import { ProfileAvatarOption } from '../../settings/config/profile-icons.config';
 import { AUTH_ROUTES, AUTH_STORAGE_KEYS } from '../constants/auth.constants';
 import { isTokenExpired } from '../utils/token.utils';
 
@@ -266,6 +267,63 @@ export class AuthenticationService {
     const user: User = { ...data };
     localStorage.setItem(AUTH_STORAGE_KEYS.AUTH_USER, JSON.stringify(user));
     this._currentUser.set(user);
+  }
+
+  /**
+   * The 6 curated avatar options (stable id + asset reference).
+   * Backend-driven; falls back to the bundled config if the endpoint
+   * is unavailable.
+   */
+  getAvatars(): Observable<ProfileAvatarOption[]> {
+    return this.http.get<ApiResponse<ProfileAvatarOption[]>>(`${this.baseUrl}${AUTH_API.AVATARS}`).pipe(
+      map((response: ApiResponse<ProfileAvatarOption[]>) =>
+        response.success && Array.isArray(response.data) ? response.data : [],
+      ),
+      catchError(() => throwError(() => [])),
+    );
+  }
+
+  /**
+   * Uploads the user's profile picture (multipart POST). On success the
+   * stored user gains profilePictureUrl, which takes precedence over the
+   * curated avatar everywhere the profile renders.
+   */
+  uploadProfilePicture(file: File): Observable<ApiResponse<LoginUserDto>> {
+    const formData = new FormData();
+    formData.append('file', file);
+    this._isLoading.set(true);
+    return this.http
+      .post<ApiResponse<LoginUserDto>>(`${this.baseUrl}${AUTH_API.UPLOAD_PROFILE_PICTURE}`, formData)
+      .pipe(
+        tap((response) => {
+          if (response.success && response.data) {
+            this.updateStoredUser(response.data);
+            this.toast.success(response.message || 'Profile picture uploaded');
+          }
+        }),
+        catchError((error) => this.handleError(error)),
+        finalize(() => this._isLoading.set(false)),
+      );
+  }
+
+  /**
+   * Removes the uploaded profile picture — the user falls back to their
+   * curated avatar (or initials).
+   */
+  removeProfilePicture(): Observable<ApiResponse<LoginUserDto>> {
+    this._isLoading.set(true);
+    return this.http
+      .delete<ApiResponse<LoginUserDto>>(`${this.baseUrl}${AUTH_API.UPLOAD_PROFILE_PICTURE}`)
+      .pipe(
+        tap((response) => {
+          if (response.success && response.data) {
+            this.updateStoredUser(response.data);
+            this.toast.success(response.message || 'Profile picture removed');
+          }
+        }),
+        catchError((error) => this.handleError(error)),
+        finalize(() => this._isLoading.set(false)),
+      );
   }
 
   /**

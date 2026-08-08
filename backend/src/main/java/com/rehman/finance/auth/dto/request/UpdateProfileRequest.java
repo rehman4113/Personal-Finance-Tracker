@@ -35,4 +35,7 @@ public class UpdateProfileRequest {
     @NotBlank(message = "Phone number is required")
     @Pattern(regexp = "^[0-9]{7,15}$", message = "Phone number must be 7 to 15 digits")
     private String phoneNumber;
+
+/** Curated avatar id (1..6) from the avatars catalog — optional. */
+    private Long profileIconId;
 }

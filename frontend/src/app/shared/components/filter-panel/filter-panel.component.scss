@@ -1,9 +1,9 @@
 .filter-panel {
   background: var(--pfm-card-bg);
   border: 1px solid var(--pfm-card-border);
-  border-radius: var(--pfm-radius-lg);
+  border-radius: var(--pfm-radius-card);
   box-shadow: var(--pfm-shadow);
-  padding: 0.9rem 1rem;
+  padding: var(--pfm-card-padding);
 
   &__fields {
     display: flex;

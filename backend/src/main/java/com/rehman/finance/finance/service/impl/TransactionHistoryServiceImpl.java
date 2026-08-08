@@ -2,6 +2,7 @@ package com.rehman.finance.finance.service.impl;
 
 import com.rehman.finance.exception.BusinessException;
 import com.rehman.finance.exception.ErrorCode;
+import com.rehman.finance.finance.dto.request.TransactionFilter;
 import com.rehman.finance.finance.dto.request.TransactionRequest;
 import com.rehman.finance.finance.dto.response.LedgerEntryResponse;
 import com.rehman.finance.finance.dto.response.TransactionResponse;
@@ -10,8 +11,12 @@ import com.rehman.finance.finance.repository.*;
 import com.rehman.finance.finance.service.LoanHistoryService;
 import com.rehman.finance.finance.service.TransactionDetailsService;
 import com.rehman.finance.finance.service.TransactionHistoryService;
+import com.rehman.finance.response.PageResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -190,13 +195,32 @@ public class TransactionHistoryServiceImpl implements TransactionHistoryService 
 
     @Override
     @Transactional(readOnly = true)
-    public List<TransactionResponse> getUserTransactions(Long userId) {
-        return transactionHistoryRepository.findByUserIdOrderByTransactionDateDescIdDesc(userId).stream()
-                .map(history -> {
-                    List<TransactionDetails> detailsList = transactionDetailsRepository.findByTransactionHistoryId(history.getId());
-                    return toResponse(history, detailsList);
-                })
-                .toList();
+    public PageResponse<TransactionResponse> getUserTransactions(Long userId, int page, int size, TransactionFilter filter) {
+        int safeSize = Math.min(Math.max(size, 1), PageResponse.MAX_PAGE_SIZE);
+        int safePage = Math.max(page, 0);
+        Sort sort = Sort.by(Sort.Order.desc("transactionDate"), Sort.Order.desc("id"));
+        PageRequest pageable = PageRequest.of(safePage, safeSize, sort);
+
+        Page<TransactionHistory> historyPage = transactionHistoryRepository.searchByFilters(
+                userId,
+                blankToNull(filter != null ? filter.type() : null),
+                blankToNull(filter != null ? filter.status() : null),
+                blankToNull(filter != null ? filter.purpose() : null),
+                blankToNull(filter != null ? filter.subcategory() : null),
+                filter != null ? filter.from() : null,
+                filter != null ? filter.to() : null,
+                filter != null ? filter.walletId() : null,
+                blankToNull(filter != null ? filter.search() : null),
+                pageable);
+
+        return PageResponse.from(historyPage, history -> {
+            List<TransactionDetails> detailsList = transactionDetailsRepository.findByTransactionHistoryId(history.getId());
+            return toResponse(history, detailsList);
+        });
+    }
+
+    private String blankToNull(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
     }
 
     @Override

@@ -11,8 +11,11 @@ import com.rehman.finance.finance.repository.BudgetLimitRepository;
 import com.rehman.finance.finance.repository.TransactionDetailsRepository;
 import com.rehman.finance.finance.repository.TransactionPurposeRepository;
 import com.rehman.finance.finance.service.BudgetService;
+import com.rehman.finance.response.PageResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,10 +70,11 @@ public class BudgetServiceImpl implements BudgetService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<BudgetResponse> getUserBudgetsForMonth(Long userId, String month) {
-        return budgetLimitRepository.findByUserIdAndMonth(userId, month).stream()
-                .map(budget -> toResponse(budget, userId))
-                .toList();
+    public PageResponse<BudgetResponse> getUserBudgetsForMonth(Long userId, String month, int page, int size) {
+        int safeSize = Math.min(Math.max(size, 1), PageResponse.MAX_PAGE_SIZE);
+        int safePage = Math.max(page, 0);
+        Page<BudgetLimit> budgetPage = budgetLimitRepository.findByUserIdAndMonth(userId, month, PageRequest.of(safePage, safeSize));
+        return PageResponse.from(budgetPage, budget -> toResponse(budget, userId));
     }
 
     @Override

@@ -2,18 +2,28 @@ package com.rehman.finance.finance.service.impl;
 
 import com.rehman.finance.exception.BusinessException;
 import com.rehman.finance.exception.ErrorCode;
+import com.rehman.finance.finance.dto.request.TransactionRequest;
 import com.rehman.finance.finance.dto.request.WalletRequest;
 import com.rehman.finance.finance.dto.response.WalletResponse;
 import com.rehman.finance.finance.entity.Wallet;
 import com.rehman.finance.finance.entity.WalletType;
+import com.rehman.finance.finance.repository.TransactionPurposeRepository;
+import com.rehman.finance.finance.repository.TransactionStatusRepository;
+import com.rehman.finance.finance.repository.TransactionTypeRepository;
 import com.rehman.finance.finance.repository.WalletRepository;
 import com.rehman.finance.finance.repository.WalletTypeRepository;
+import com.rehman.finance.finance.service.TransactionHistoryService;
 import com.rehman.finance.finance.service.WalletService;
+import com.rehman.finance.response.PageResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -23,6 +33,10 @@ public class WalletServiceImpl implements WalletService {
 
     private final WalletRepository walletRepository;
     private final WalletTypeRepository walletTypeRepository;
+    private final TransactionHistoryService transactionHistoryService;
+    private final TransactionTypeRepository transactionTypeRepository;
+    private final TransactionPurposeRepository transactionPurposeRepository;
+    private final TransactionStatusRepository transactionStatusRepository;
 
     @Override
     @Transactional
@@ -42,15 +56,47 @@ public class WalletServiceImpl implements WalletService {
                 .walletName(request.getWalletName())
                 .currency(request.getCurrency() != null ? request.getCurrency() : "PKR")
                 .initialBalance(request.getInitialBalance() != null ? request.getInitialBalance() : java.math.BigDecimal.ZERO)
-                .currentBalance(request.getInitialBalance() != null ? request.getInitialBalance() : java.math.BigDecimal.ZERO)
+                .currentBalance(java.math.BigDecimal.ZERO)
                 .accountNumber(request.getAccountNumber())
                 .description(request.getDescription())
                 .status("ACTIVE")
                 .build();
 
         wallet = walletRepository.save(wallet);
+
+        BigDecimal initialBalance = request.getInitialBalance() != null ? request.getInitialBalance() : BigDecimal.ZERO;
+        if (initialBalance.compareTo(BigDecimal.ZERO) > 0) {
+            logOpeningBalanceTransaction(userId, wallet, initialBalance);
+        }
         log.info("Wallet created: id={}, userId={}", wallet.getId(), userId);
         return toResponse(wallet);
+    }
+
+    /**
+     * Logs an automatic INCOME transaction for a wallet that was created with
+     * a positive opening balance. Runs inside the same transaction as wallet
+     * creation so the wallet balance and the ledger always move together.
+     */
+    private void logOpeningBalanceTransaction(Long userId, Wallet wallet, BigDecimal amount) {
+        TransactionRequest.WalletEntry entry = TransactionRequest.WalletEntry.builder()
+                .walletId(wallet.getId())
+                .amount(amount)
+                .build();
+        TransactionRequest transactionRequest = TransactionRequest.builder()
+                .transactionTypeId(transactionTypeRepository.findByCode("INCOME")
+                        .orElseThrow(() -> new BusinessException(ErrorCode.BAD_REQUEST, "INCOME type not found")).getId())
+                .transactionPurposeId(transactionPurposeRepository.findByCode("INITIAL_BALANCE")
+                        .orElseThrow(() -> new BusinessException(ErrorCode.BAD_REQUEST, "INITIAL_BALANCE purpose not found")).getId())
+                .transactionStatusId(transactionStatusRepository.findByCode("COMPLETED")
+                        .orElseThrow(() -> new BusinessException(ErrorCode.BAD_REQUEST, "COMPLETED status not found")).getId())
+                .totalAmount(amount)
+                .transactionDate(LocalDateTime.now())
+                .description("Opening balance for wallet: " + wallet.getWalletName())
+                .referenceNumber("WALLET-INIT-" + wallet.getId())
+                .walletEntries(List.of(entry))
+                .build();
+        transactionHistoryService.createTransaction(userId, transactionRequest);
+        log.info("Opening balance transaction logged for wallet id={}, amount={}", wallet.getId(), amount);
     }
 
     @Override
@@ -99,10 +145,11 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<WalletResponse> getUserWallets(Long userId) {
-        return walletRepository.findByUserId(userId).stream()
-                .map(this::toResponse)
-                .toList();
+    public PageResponse<WalletResponse> getUserWallets(Long userId, int page, int size) {
+        int safeSize = Math.min(Math.max(size, 1), PageResponse.MAX_PAGE_SIZE);
+        int safePage = Math.max(page, 0);
+        Page<Wallet> walletPage = walletRepository.findByUserId(userId, PageRequest.of(safePage, safeSize));
+        return PageResponse.from(walletPage, this::toResponse);
     }
 
     @Override

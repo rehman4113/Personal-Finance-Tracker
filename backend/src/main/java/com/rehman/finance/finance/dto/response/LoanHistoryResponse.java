@@ -20,6 +20,7 @@ public class LoanHistoryResponse {
 
     private Long id;
     private Long loanUserId;
+    private String loanUserName;
     private Long transactionHistoryId;
     private Long transactionDetailId;
     private BigDecimal amount;

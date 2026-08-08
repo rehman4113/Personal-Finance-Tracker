@@ -2,8 +2,7 @@ package com.rehman.finance.finance.service;
 
 import com.rehman.finance.finance.dto.request.SharedExpenseRequest;
 import com.rehman.finance.finance.dto.response.SharedExpenseResponse;
-
-import java.util.List;
+import com.rehman.finance.response.PageResponse;
 
 public interface SharedExpenseService {
 
@@ -11,7 +10,7 @@ public interface SharedExpenseService {
 
     SharedExpenseResponse getSharedExpense(Long userId, Long expenseId);
 
-    List<SharedExpenseResponse> getUserSharedExpenses(Long userId);
+    PageResponse<SharedExpenseResponse> getUserSharedExpenses(Long userId, int page, int size);
 
     void settleMember(Long userId, Long expenseId, Long memberId);
 

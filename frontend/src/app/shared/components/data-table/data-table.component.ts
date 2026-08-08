@@ -49,7 +49,11 @@ export interface TableActionEvent<R> {
     <div class="data-table">
       <div class="data-table__toolbar">
         <span class="data-table__meta">
-          {{ rows().length }} record{{ rows().length === 1 ? '' : 's' }}
+          @if (serverMode()) {
+            {{ totalElements() }} record{{ totalElements() === 1 ? '' : 's' }}
+          } @else {
+            {{ rows().length }} record{{ rows().length === 1 ? '' : 's' }}
+          }
         </span>
         @if (exportable()) {
           <button type="button" class="btn btn-sm btn-outline-primary" (click)="onExport()">
@@ -192,9 +196,15 @@ export class DataTableComponent<R> {
   readonly pageSizes = input<number[]>([5, 10, 25, 50]);
   readonly actions = input<TableAction<R>[]>([]);
 
+  /** Server-driven pagination: rows() is the current page; totals come from the server. */
+  readonly serverMode = input<boolean>(false);
+  readonly totalElements = input<number>(0);
+
   readonly page = model<number>(1);
   readonly pageSize = model<number>(10);
   readonly action = output<TableActionEvent<R>>();
+  /** Server mode only: parent owns CSV export (fetch full filtered set first). */
+  readonly exportRequest = output<void>();
 
   sortKey = signal<string | null>(null);
   sortDir = signal<'asc' | 'desc'>('asc');
@@ -205,6 +215,7 @@ export class DataTableComponent<R> {
     effect(() => {
       this.rows();
       const total = this.totalPages();
+      if (this.serverMode() && total === 0) return;
       if (this.page() > total) this.page.set(total);
     });
   }
@@ -249,11 +260,13 @@ export class DataTableComponent<R> {
   }
 
   visibleRows(): R[] {
+    if (this.serverMode()) return this.sortedRows();
     const start = (this.page() - 1) * this.pageSize();
     return this.sortedRows().slice(start, start + this.pageSize());
   }
 
   totalPages(): number {
+    if (this.serverMode()) return Math.max(1, Math.ceil(this.totalElements() / this.pageSize()));
     return Math.max(1, Math.ceil(this.rows().length / this.pageSize()));
   }
 
@@ -281,8 +294,13 @@ export class DataTableComponent<R> {
     this.action.emit({ action, row });
   }
 
-  /** Exports the CURRENT (filtered) row set — the full input, not just the page. */
+  /** Exports the CURRENT (filtered) row set — the full input, not just the page.
+   *  In server mode the page owns the full dataset, so we delegate via exportRequest. */
   onExport(): void {
+    if (this.serverMode()) {
+      this.exportRequest.emit();
+      return;
+    }
     const cols = this.columns();
     exportToCsv(this.exportName(), cols.map((c) => ({ header: c.label, value: (row) => c.cell(row as R) })), this.rows());
   }

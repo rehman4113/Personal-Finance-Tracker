@@ -7,14 +7,141 @@ $navbar-height: 60px;
   justify-content: space-between;
   gap: 1rem;
   padding: 0 1.25rem;
-  background: #101a2e;
-  border-bottom: 1px solid var(--pfm-card-border);
+  background: var(--pfm-topbar-bg);
+  border-bottom: 1px solid var(--pfm-nav-border);
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
-  position: relative;
-  z-index: 2;
+  /* Fixed (not sticky) so the bar stays pinned at every breakpoint — sticky
+     turns out fallible if any ancestor establishes a scroll/overflow context.
+     The sidebar column is gone, so the bar spans the full width. */
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1030;
+
+  /* Notch/safe-area inset on iOS — keeps the pinned bar clear of the pill. */
+  padding-top: env(safe-area-inset-top);
+  height: calc($navbar-height + env(safe-area-inset-top));
+
+  &__right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
 }
 
-.top-navbar__toggle {
+/* ---------- Primary nav (inline icon row, desktop/tablet) ---------- */
+.top-navbar__nav {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  /* NO overflow clipping here — the Transactions dropdown is absolutely
+     positioned below its pill and must escape the nav row. Items always fit
+     because labels drop out on smaller screens (media rule below). */
+  overflow: visible;
+}
+
+/* Magnetic active pill — measured against the active nav item and slid with
+   a springy curve, exactly like the old sidebar active indicator. */
+.top-navbar__indicator {
+  position: absolute;
+  z-index: 0;
+  border-radius: 10px;
+  background: var(--pfm-nav-active-bg);
+  transition:
+    top 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+    left 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+    width 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+    height 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.top-navbar__nav-item {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  height: 40px;
+  padding: 0 0.8rem;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--pfm-nav-icon-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.16s ease, color 0.16s ease;
+
+  .bi {
+    font-size: 1.15rem;
+    line-height: 1;
+  }
+
+  &:hover {
+    background: var(--pfm-nav-hover-bg);
+    color: var(--pfm-nav-icon-hover);
+  }
+
+  &--active {
+    background: transparent;
+    color: var(--pfm-nav-active-text)!important;
+    font-weight: 600;
+
+    &:hover {
+      background: transparent;
+      color: var(--pfm-nav-active-text);
+    }
+  }
+}
+
+.top-navbar__nav-caret {
+  font-size: 0.7rem;
+  opacity: 0.75;
+}
+
+/* Dropdown panel under the Transactions parent item */
+.top-navbar__nav-menu {
+  min-width: 230px;
+  background: var(--pfm-card-bg);
+  border: 1px solid var(--pfm-card-border);
+  border-radius: 12px;
+  box-shadow: var(--pfm-shadow-card);
+  padding: 0.35rem;
+}
+
+.top-navbar__nav-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border-radius: 8px;
+  color: var(--pfm-text-primary);
+  font-size: 0.875rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.14s ease;
+
+  &:hover {
+    background: var(--pfm-row-hover);
+  }
+
+  &--active {
+    color: var(--pfm-panel-accent);
+    font-weight: 600;
+  }
+}
+
+/* ---------- Right-side icon buttons (theme, bell) ---------- */
+.top-navbar__icon {
+  position: relative;
   width: 38px;
   height: 38px;
   display: inline-flex;
@@ -22,14 +149,39 @@ $navbar-height: 60px;
   justify-content: center;
   border: none;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--pfm-nav-icon-bg);
   color: var(--pfm-text-primary);
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   cursor: pointer;
-  transition: background-color 0.16s ease;
+  transition: background-color 0.16s ease, color 0.16s ease;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.12);
+    background: var(--pfm-nav-icon-hover-bg);
+    color: var(--pfm-nav-icon-hover);
+  }
+}
+
+.top-navbar__badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 17px;
+  height: 17px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #fff;
+
+  &--warning {
+    background: var(--pfm-warning, #f59e0b);
+  }
+
+  &--danger {
+    background: var(--pfm-danger);
   }
 }
 
@@ -45,7 +197,7 @@ $navbar-height: 60px;
   transition: background-color 0.16s ease;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.07);
+    background: var(--pfm-nav-hover-bg);
   }
 }
 
@@ -60,34 +212,65 @@ $navbar-height: 60px;
   color: #fff;
   font-weight: 600;
   font-size: 0.85rem;
-  box-shadow: 0 0 0 2px rgba(255, 209, 102, 0.35);
-}
+  /* Thin green status ring — "active session" cue (fintech polish). */
+  box-shadow: 0 0 0 2px var(--pfm-success), 0 0 0 5px var(--pfm-success-tint);
+  overflow: hidden;
 
-.top-navbar__user-text {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  line-height: 1.2;
+  &--img {
+    width: 38px;
+    height: 38px;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
 }
 
 .top-navbar__user-name {
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--pfm-text-primary);
-}
-
-.top-navbar__user-email {
-  font-size: 0.75rem;
-  color: var(--pfm-text-muted);
-  max-width: 180px;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  max-width: 160px;
 }
 
 .top-navbar__caret {
   font-size: 0.7rem;
   color: var(--pfm-text-muted);
+}
+
+/* ---------- Profile-block loading skeleton (avatar + name/email lines) ---------- */
+.top-navbar__profile-skeleton {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.3rem 0.5rem;
+}
+
+.top-navbar__avatar-skeleton {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.top-navbar__skeleton-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.top-navbar__skeleton-line {
+  display: block;
+  height: 0.7rem;
+
+  &--name {
+    width: 110px;
+  }
+
+  &--email {
+    width: 150px;
+  }
 }
 
 /* Dropdown panel lives in the shared dropdown component (dark surface via
@@ -113,6 +296,7 @@ $navbar-height: 60px;
 .top-navbar__menu-email {
   font-size: 0.78rem;
   color: var(--pfm-text-muted);
+  max-width: 240px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -132,7 +316,7 @@ $navbar-height: 60px;
   transition: background-color 0.14s ease;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--pfm-nav-hover-bg);
   }
 
   &--danger {
@@ -144,8 +328,53 @@ $navbar-height: 60px;
   }
 }
 
-@media (max-width: 575.98px) {
-  .top-navbar__user-email {
+.top-navbar__menu-divider {
+  height: 1px;
+  margin: 0.3rem 0;
+  background: var(--pfm-divider);
+}
+
+/* Mobile: the icon row hides entirely — phones navigate via the bottom nav.
+   Row 1 keeps the avatar only (no inline name/email); the profile dropdown
+   opens as a compact 280px panel anchored below-right of the avatar. */
+@media (max-width: 767.98px) {
+  .top-navbar {
+    /* With the nav row hidden the topbar has only one group of controls left —
+       keep theme/bell/profile pinned to the RIGHT side, not the default left. */
+    justify-content: flex-end;
+  }
+
+  .top-navbar__nav {
     display: none;
+  }
+
+  .top-navbar__user-name,
+  .top-navbar__caret,
+  .top-navbar__skeleton-lines {
+    display: none;
+  }
+
+  .top-navbar__menu {
+    width: 280px;
+    max-width: calc(100vw - 1.25rem);
+  }
+}
+
+/* Tablet widths: labeled pills no longer fit beside the right-side controls,
+   so the nav falls back to icon-only pills (tooltips still label them) and
+   the Transactions dropdown opens below its icon unobstructed. */
+@media (max-width: 1199.98px) and (min-width: 768px) {
+  .top-navbar__nav-label {
+    display: none;
+  }
+
+  .top-navbar__nav-item {
+    padding-inline: 0.55rem;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .top-navbar {
+    padding-inline: 0.85rem;
   }
 }

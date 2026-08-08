@@ -7,3 +7,28 @@
   min-height: 3px;
   transition: height 0.4s ease;
 }
+
+.dashboard-mini-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  font-size: 1.2rem;
+
+  &--info {
+    background: var(--pfm-info-tint);
+    color: var(--pfm-info);
+  }
+
+  &--warning {
+    background: var(--pfm-warning-tint);
+    color: var(--pfm-warning);
+  }
+}
+
+:host ::ng-deep .min-w-0 {
+  min-width: 0;
+}

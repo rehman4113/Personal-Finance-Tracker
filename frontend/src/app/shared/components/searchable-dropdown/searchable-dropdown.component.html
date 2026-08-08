@@ -1,4 +1,4 @@
-<div
+﻿<div
   class="searchable-dropdown"
   [class.searchable-dropdown--sm]="size() === 'sm'"
   [class.searchable-dropdown--lg]="size() === 'lg'"
@@ -20,11 +20,29 @@
         class="searchable-dropdown__filter"
         type="text"
         [value]="query()"
-        [placeholder]="placeholder()"
+        [placeholder]="isMulti() ? (selectedMulti().length ? '' : placeholder()) : placeholder()"
         (input)="onQuery($event)"
         (keydown)="onKeydown($event)"
         (blur)="onTouched()"
       />
+    } @else if (isMulti() && selectedMulti().length > 0) {
+      <div class="searchable-dropdown__chips">
+        @for (chip of selectedLabels(); track chip.value) {
+          <span class="searchable-dropdown__chip">
+            {{ chip.label }}
+            <button
+              type="button"
+              class="searchable-dropdown__chip-remove"
+              tabindex="-1"
+              aria-label="Remove {{ chip.label }}"
+              (mousedown)="$event.stopPropagation()"
+              (click)="removeChip(chip.value, $event)"
+            >
+              <i class="bi bi-x"></i>
+            </button>
+          </span>
+        }
+      </div>
     } @else {
       <span
         class="searchable-dropdown__value"
@@ -34,7 +52,19 @@
       </span>
     }
 
-    @if (clearable() && selected() !== null && selected() !== '') {
+    @if (clearable() && !isMulti() && selected() !== null && selected() !== '') {
+      <button
+        type="button"
+        class="searchable-dropdown__clear"
+        tabindex="-1"
+        aria-label="Clear selection"
+        (mousedown)="$event.stopPropagation()"
+        (click)="clear($event)"
+      >
+        <i class="bi bi-x-lg"></i>
+      </button>
+    }
+    @if (clearable() && isMulti() && selectedMulti().length > 0) {
       <button
         type="button"
         class="searchable-dropdown__clear"
@@ -54,7 +84,7 @@
       @if (creating() && isCreateRow(rows()[0])) {
         <div class="searchable-dropdown__create searchable-dropdown__create--busy">
           <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
-          Creating '{{ query().trim() }}'…
+          Creating '{{ query().trim() }}'â€¦
         </div>
       } @else {
         @for (row of rows(); track trackRow(row); let i = $index) {
@@ -72,11 +102,17 @@
             <div
               class="searchable-dropdown__option"
               [class.is-highlighted]="isHighlighted(i)"
+              [class.is-selected]="isMultiSelected(row.value)"
               role="option"
-              [attr.aria-selected]="str(selected()) === str(row.value)"
+              [attr.aria-selected]="isMulti() ? isMultiSelected(row.value) : str(selected()) === str(row.value)"
               (mousedown)="$event.preventDefault()"
               (click)="select(row)"
             >
+              @if (isMulti()) {
+                <i class="bi searchable-dropdown__check"
+                   [class.bi-check-circle-fill]="isMultiSelected(row.value)"
+                   [class.bi-circle]="!isMultiSelected(row.value)"></i>
+              }
               <span class="searchable-dropdown__option-name">{{ row.name }}</span>
               @if (row.subtitle) {
                 <small class="searchable-dropdown__option-subtitle">{{ row.subtitle }}</small>

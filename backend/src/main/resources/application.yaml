@@ -20,6 +20,13 @@ spring:
       hibernate:
         format_sql: true
 
+  servlet:
+    multipart:
+      # Profile picture upload (max ~5 MB per file, content-type whitelist enforced
+      # in AuthServiceImpl).
+      max-file-size: 5MB
+      max-request-size: 6MB
+
   flyway:
     enabled: true
     locations: classpath:db/migration
@@ -52,15 +59,19 @@ app:
     refresh-token-expiration: 604800000
   cors:
     allowed-origins: http://localhost:4200,http://127.0.0.1:4200
+  # Local disk location for uploaded profile pictures, served at /uploads/**.
+  # In production, point this at a persistent volume / object store.
+  upload-dir: ./uploads
   # Verified sender used as the From address on all outbox emails.
   mail:
     # Brevo Transactional Email API key (NOT your Brevo account password),
     # generated in Brevo dashboard → SMTP & API → API Keys.
     #
     # !!! WARNING !!!
-    # This file IS TRACKED IN GIT and is NOT in .gitignore. Paste your real
-    # key ONLY in your local work copy right before running the app, and
-    # restore this placeholder before `git add`. Never commit the real key.
-    brevo-api-key: xkeysib-REPLACE_WITH_YOUR_BREVO_API_KEY
+    # This file IS TRACKED IN GIT and is NOT in .gitignore. Set the
+    # BREVO_API_KEY environment variable locally — never paste the key here.
+    # Leave a placeholder only when running without outbound email.
+    brevo-api-key: ${BREVO_API_KEY:}
     from-address: dding5572@gmail.com
     from-name: Personal Finance Tracker
+

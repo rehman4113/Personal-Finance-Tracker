@@ -99,6 +99,7 @@ function todayStr(): string {
                     [class.btn-primary]="activeType() === type"
                     [class.btn-outline-secondary]="activeType() !== type"
                     (click)="changeType(type)"
+                    [attr.data-tour]="type === 'TRANSFER' ? 'new-tx-transfer' : null"
                   >
                     <i class="bi me-1" [class]="typeIcon(type)"></i>{{ typeLabel(type) }}
                   </button>

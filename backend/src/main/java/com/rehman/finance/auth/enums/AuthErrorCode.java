@@ -19,7 +19,10 @@ public enum AuthErrorCode implements ErrorCodeProvider {
     OTP_INVALID(HttpStatus.BAD_REQUEST, "AUTH-400-001", "Invalid verification code"),
     OTP_EXPIRED(HttpStatus.BAD_REQUEST, "AUTH-400-002", "Verification code has expired"),
     PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST, "AUTH-400-003", "Passwords do not match"),
-    EMAIL_ALREADY_VERIFIED(HttpStatus.CONFLICT, "AUTH-409-002", "Email already verified");
+    EMAIL_ALREADY_VERIFIED(HttpStatus.CONFLICT, "AUTH-409-002", "Email already verified"),
+    INVALID_REQUEST(HttpStatus.BAD_REQUEST, "AUTH-400-004", "Invalid request"),
+    INVALID_IMAGE_TYPE(HttpStatus.BAD_REQUEST, "AUTH-400-005", "Only PNG, JPG, WEBP and GIF images are allowed"),
+    IMAGE_STORAGE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "AUTH-500-001", "Could not store the profile picture");
 
     private final HttpStatus httpStatus;
     private final String code;

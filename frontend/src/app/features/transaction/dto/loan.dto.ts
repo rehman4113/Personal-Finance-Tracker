@@ -24,6 +24,7 @@ export interface LoanUserRequest {
 export interface LoanHistoryDto {
   id: number;
   loanUserId: number;
+  loanUserName?: string | null;
   transactionHistoryId?: number | null;
   transactionDetailId?: number | null;
   amount: number;
@@ -34,6 +35,19 @@ export interface LoanHistoryDto {
   transactionType: string;
   remarks?: string | null;
   createdAt?: string;
+}
+
+export interface LoanTotalsDto {
+  totalReceivable: number;
+  totalPayable: number;
+}
+
+/** Filters for the combined loan-history listing (all optional). */
+export interface LoanHistoryFilter {
+  loanUserId?: number | null;
+  status?: string | null;
+  from?: string | null;
+  to?: string | null;
 }
 
 export interface LedgerEntryDto {

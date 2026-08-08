@@ -27,6 +27,10 @@ export const FINANCE_ROUTES: Routes = [
         loadChildren: () => import('./wallet/wallet.routes').then((m) => m.WALLET_ROUTES),
       },
       {
+        path: 'loan-users',
+        loadChildren: () => import('./loan/loan.routes').then((m) => m.LOAN_ROUTES),
+      },
+      {
         path: 'budgets',
         loadChildren: () => import('./budget/budget.routes').then((m) => m.BUDGET_ROUTES),
       },

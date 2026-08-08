@@ -7,5 +7,5 @@ export const STORAGE_KEYS = {
   REFRESH_TOKEN: 'pfm_refresh_token',
   AUTH_USER: 'pfm_auth_user',
   REMEMBER_ME: 'pfm_remember_me',
-  SIDEBAR_COLLAPSED: 'pfm_sidebar_collapsed',
+  THEME: 'pfm_theme',
 } as const;

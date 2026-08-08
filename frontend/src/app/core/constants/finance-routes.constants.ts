@@ -8,6 +8,7 @@ export const FINANCE_ROUTES = {
   TRANSACTIONS: '/transactions',
   CREATE_TRANSACTION: '/transactions/create',
   WALLETS: '/wallets',
+  LOAN_USERS: '/loan-users',
   BUDGETS: '/budgets',
   REPORTS: '/reports',
   SETTINGS: '/settings',

@@ -6,6 +6,7 @@ import com.rehman.finance.finance.dto.request.BudgetRequest;
 import com.rehman.finance.finance.dto.response.BudgetResponse;
 import com.rehman.finance.finance.service.BudgetService;
 import com.rehman.finance.response.ApiResponse;
+import com.rehman.finance.response.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -15,8 +16,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Tag(name = "Budget Management", description = "Endpoints for managing budget limits")
 @RestController
@@ -52,15 +51,17 @@ public class BudgetController {
         return ResponseEntity.ok(ApiResponse.success(budgetService.getBudget(currentUser.getUserId(), id)));
     }
 
-    @Operation(summary = "Get budgets for a month")
+    @Operation(summary = "Get budgets for a month (paginated)")
     @ApiResponses(value = {
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "List of budgets")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Paginated list of budgets")
     })
     @GetMapping
-    public ResponseEntity<ApiResponse<List<BudgetResponse>>> getUserBudgetsForMonth(
+    public ResponseEntity<ApiResponse<PageResponse<BudgetResponse>>> getUserBudgetsForMonth(
             @AuthenticationPrincipal UserPrincipal currentUser,
-            @RequestParam String month) {
-        return ResponseEntity.ok(ApiResponse.success(budgetService.getUserBudgetsForMonth(currentUser.getUserId(), month)));
+            @RequestParam String month,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(ApiResponse.success(budgetService.getUserBudgetsForMonth(currentUser.getUserId(), month, page, size)));
     }
 
     @Operation(summary = "Update a budget limit")

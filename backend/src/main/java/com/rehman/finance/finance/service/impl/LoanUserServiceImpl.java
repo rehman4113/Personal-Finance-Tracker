@@ -3,12 +3,16 @@ package com.rehman.finance.finance.service.impl;
 import com.rehman.finance.exception.BusinessException;
 import com.rehman.finance.exception.ErrorCode;
 import com.rehman.finance.finance.dto.request.LoanUserRequest;
+import com.rehman.finance.finance.dto.response.LoanTotalsResponse;
 import com.rehman.finance.finance.dto.response.LoanUserResponse;
 import com.rehman.finance.finance.entity.LoanUser;
 import com.rehman.finance.finance.repository.LoanUserRepository;
 import com.rehman.finance.finance.service.LoanUserService;
+import com.rehman.finance.response.PageResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,10 +63,11 @@ public class LoanUserServiceImpl implements LoanUserService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<LoanUserResponse> getUserLoanUsers(Long userId) {
-        return loanUserRepository.findByUserId(userId).stream()
-                .map(this::toResponse)
-                .toList();
+    public PageResponse<LoanUserResponse> getUserLoanUsers(Long userId, int page, int size) {
+        int safeSize = Math.min(Math.max(size, 1), PageResponse.MAX_PAGE_SIZE);
+        int safePage = Math.max(page, 0);
+        Page<LoanUser> loanUserPage = loanUserRepository.findByUserId(userId, PageRequest.of(safePage, safeSize));
+        return PageResponse.from(loanUserPage, this::toResponse);
     }
 
     @Override
@@ -97,6 +102,26 @@ public class LoanUserServiceImpl implements LoanUserService {
         String name = fullName != null ? fullName.trim().toUpperCase().replaceAll("\\s+", "_") : "";
         String contact = contactNumber != null ? contactNumber.trim() : "";
         return name + "_" + contact;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public LoanTotalsResponse getLoanTotals(Long userId) {
+        List<LoanUser> loanUsers = loanUserRepository.findByUserId(userId);
+        java.math.BigDecimal receivable = java.math.BigDecimal.ZERO;
+        java.math.BigDecimal payable = java.math.BigDecimal.ZERO;
+        for (LoanUser loanUser : loanUsers) {
+            java.math.BigDecimal amount = loanUser.getCurrentAmount() != null ? loanUser.getCurrentAmount() : java.math.BigDecimal.ZERO;
+            if ("RECEIVABLE".equals(loanUser.getLoanStatus())) {
+                receivable = receivable.add(amount);
+            } else if ("PAYABLE".equals(loanUser.getLoanStatus())) {
+                payable = payable.add(amount);
+            }
+        }
+        return LoanTotalsResponse.builder()
+                .totalReceivable(receivable)
+                .totalPayable(payable)
+                .build();
     }
 
     private LoanUserResponse toResponse(LoanUser loanUser) {

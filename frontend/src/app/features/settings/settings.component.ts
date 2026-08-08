@@ -1,5 +1,6 @@
 ﻿import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { concat, Observable } from 'rxjs';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { DrawerComponent } from '../../shared/components/drawer/drawer.component';
@@ -9,6 +10,7 @@ import { OtpInputComponent } from '../../shared/components/otp-input/otp-input.c
 import { ValidationMessagesComponent } from '../../shared/components/validation-messages/validation-messages.component';
 import { AuthenticationService } from '../auth/services/authentication.service';
 import { AUTH_ROUTES } from '../auth/constants/auth.constants';
+import { APP_CONFIG } from '../../core/config/app.config';
 import { CountryCodeDropdownComponent } from '../auth/components/country-code-dropdown/country-code-dropdown.component';
 import { ForgotPasswordFlowComponent } from '../auth/components/forgot-password-flow/forgot-password-flow.component';
 import { COUNTRY_CODES } from '../auth/config/country-codes.config';
@@ -23,8 +25,10 @@ import { TransactionService } from '../transaction/services/transaction.service'
 import { WalletTypeDto } from '../transaction/dto/wallet.dto';
 import { LoanUserDto, LoanHistoryDto } from '../transaction/dto/loan.dto';
 import { CountUpDirective } from '../../shared/directives/count-up.directive';
+import { DemoTourService } from '../../core/services/demo-tour.service';
 import { WalletTypeFormComponent } from './wallet-type-form.component';
 import { LoanUserFormComponent } from './loan-user-form.component';
+import { PROFILE_AVATARS, ProfileAvatarOption } from './config/profile-icons.config';
 
 /**
  * Settings — profile section (display, edit + email-change verification,
@@ -57,7 +61,13 @@ import { LoanUserFormComponent } from './loan-user-form.component';
         <!-- Profile -->
         <div class="col-lg-4">
           <div class="settings-profile">
-            <div class="settings-profile__avatar">{{ initials() }}</div>
+            <div class="settings-profile__avatar">
+              @if (avatarPreview()) {
+                <img [src]="avatarPreview()!" alt="Profile avatar" class="settings-profile__avatar-img" />
+              } @else {
+                {{ initials() }}
+              }
+            </div>
             <h5 class="settings-profile__name">{{ user()?.firstName }} {{ user()?.lastName }}</h5>
             <p class="settings-profile__email">{{ user()?.email }}</p>
             @if (displayContact()) {
@@ -83,6 +93,9 @@ import { LoanUserFormComponent } from './loan-user-form.component';
               </button>
               <button type="button" class="btn btn-outline-secondary" (click)="openResetPassword()">
                 <i class="bi bi-key me-1"></i>Reset Password
+              </button>
+              <button type="button" class="btn btn-outline-secondary" (click)="replayTour()">
+                <i class="bi bi-play-circle me-1"></i>Replay Tour
               </button>
               <button type="button" class="btn btn-outline-danger" (click)="onLogout()">
                 <i class="bi bi-box-arrow-right me-1"></i>Logout
@@ -251,6 +264,53 @@ import { LoanUserFormComponent } from './loan-user-form.component';
             </div>
           </div>
 
+          <div class="mb-4">
+            <label class="form-label d-block">Avatar</label>
+            <div class="settings-profile__picker-preview">
+              @if (avatarPreview()) {
+                <img [src]="avatarPreview()!" alt="Avatar preview" class="settings-profile__picker-preview-img" />
+              } @else {
+                <span class="settings-profile__picker-preview-init">{{ initials() }}</span>
+              }
+            </div>
+            <div class="settings-profile__picker">
+              @for (avatar of avatars(); track avatar.id) {
+                <button
+                  type="button"
+                  class="settings-profile__avatar-option"
+                  [class.settings-profile__avatar-option--active]="selectedAvatarId() === avatar.id"
+                  (click)="selectAvatar(avatar.id)"
+                  title="{{ avatar.name }}"
+                >
+                  <img [src]="avatar.assetPath" alt="{{ avatar.name }}" />
+                </button>
+              }
+              <button
+                type="button"
+                class="settings-profile__avatar-option settings-profile__avatar-option--upload"
+                [class.settings-profile__avatar-option--active]="photoFile() !== null"
+                [disabled]="saving()"
+                title="Upload your own photo"
+                (click)="fileInput.click()"
+              >
+                <i class="bi bi-camera"></i>
+              </button>
+            </div>
+            <input #fileInput type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden (change)="onPickFile($event)" />
+            <div class="d-flex flex-wrap gap-2 mt-2">
+              @if (photoPreview() || user()?.profilePictureUrl) {
+                <button type="button" class="btn btn-link btn-sm p-0" [disabled]="saving()" (click)="onRemovePicture()">
+                  <i class="bi bi-x-circle me-1"></i>Remove my photo
+                </button>
+              }
+              @if (selectedAvatarId() || photoPreview() || user()?.profilePictureUrl) {
+                <button type="button" class="btn btn-link btn-sm p-0" [disabled]="saving()" (click)="clearAvatarSelection()">
+                  <i class="bi bi-x-circle me-1"></i>No avatar (initials)
+                </button>
+              }
+            </div>
+          </div>
+
           <div class="d-flex justify-content-end gap-2">
             <button type="button" class="btn btn-outline-secondary" (click)="closeEdit(false)">Cancel</button>
             <button type="submit" class="btn btn-primary-gradient" [disabled]="editForm.invalid || saving()">
@@ -353,7 +413,10 @@ export class SettingsComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthenticationService);
+  private readonly demoTour = inject(DemoTourService);
   protected readonly service = inject(TransactionService);
+
+  protected readonly apiBaseUrl = APP_CONFIG.apiBaseUrl;
 
   readonly user = this.authService.currentUser;
 
@@ -365,6 +428,17 @@ export class SettingsComponent implements OnInit {
     if (!u) return '?';
     return `${u.firstName?.[0] ?? ''}${u.lastName?.[0] ?? ''}`.toUpperCase();
   });
+
+  readonly avatars = signal<ProfileAvatarOption[]>(PROFILE_AVATARS);
+  readonly selectedAvatarId = signal<number | null>(null);
+
+  /* Pending (unsaved) avatar changes — nothing hits the backend until Save.
+      photoFile: file picked but not uploaded yet;
+      photoPreview: data-URL shown in every avatar circle before Save;
+      photoRemovePending: queue removal of the saved photo (exclusivity). */
+  readonly photoFile = signal<File | null>(null);
+  readonly photoPreview = signal<string | null>(null);
+  readonly photoRemovePending = signal(false);
 
   readonly typeFormOpen = signal(false);
   readonly editingType = signal<WalletTypeDto | null>(null);
@@ -408,6 +482,13 @@ export class SettingsComponent implements OnInit {
     this.service.loadMasterData();
     this.service.loadWalletTypes().subscribe({ error: () => undefined });
     this.service.loadLoanUsers().subscribe({ error: () => undefined });
+    this.authService.getAvatars().subscribe({
+      next: (avatars) => {
+        if (avatars.length > 0) {
+          this.avatars.set(avatars);
+        }
+      },
+    });
   }
 
   /** Splits the stored digits-only contact into country code + phone. */
@@ -433,6 +514,56 @@ export class SettingsComponent implements OnInit {
     return `+${parts.countryCode.replace('+', '')} ${grouped}`;
   }
 
+  selectAvatar(id: number): void {
+    this.selectedAvatarId.set(id);
+    // Exclusivity: picking a curated avatar discards any pending photo (and
+    // queues removal of the saved photo so only one wins after Save).
+    this.photoFile.set(null);
+    this.photoPreview.set(null);
+    this.photoRemovePending.set(!!this.user()?.profilePictureUrl);
+  }
+
+  onPickFile(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.photoPreview.set(typeof reader.result === 'string' ? reader.result : null);
+    };
+    reader.readAsDataURL(file);
+    this.photoFile.set(file);
+    // Exclusivity: a pending photo clears the curated avatar selection.
+    this.photoRemovePending.set(false);
+    this.selectedAvatarId.set(null);
+  }
+
+  onRemovePicture(): void {
+    this.photoFile.set(null);
+    this.photoPreview.set(null);
+    this.photoRemovePending.set(true);
+    this.selectedAvatarId.set(null);
+  }
+
+  clearAvatarSelection(): void {
+    this.selectedAvatarId.set(null);
+    this.photoFile.set(null);
+    this.photoPreview.set(null);
+    this.photoRemovePending.set(!!this.user()?.profilePictureUrl);
+  }
+
+  /** What the avatar circle shows: pending photo -> saved photo ->
+   *  chosen curated avatar -> saved curated avatar -> initials. */
+  readonly avatarPreview = computed(() => {
+    const pending = this.photoPreview();
+    if (pending) return pending;
+    const u = this.user();
+    if (u?.profilePictureUrl) return `${this.apiBaseUrl}${u.profilePictureUrl}`;
+    const id = this.selectedAvatarId() ?? u?.profileIconId ?? null;
+    return this.avatars().find((a) => a.id === id)?.assetPath ?? null;
+  });
+
   openEditProfile(): void {
     const user = this.user();
     if (!user) return;
@@ -444,6 +575,10 @@ export class SettingsComponent implements OnInit {
       countryCode: parts.countryCode,
       phone: parts.phone,
     });
+    this.selectedAvatarId.set(user.profileIconId ?? null);
+    this.photoFile.set(null);
+    this.photoPreview.set(null);
+    this.photoRemovePending.set(false);
     this.editStep.set('form');
     this.editApiError.set(null);
     this.editOpen.set(true);
@@ -454,6 +589,11 @@ export class SettingsComponent implements OnInit {
     if (!open) {
       this.editStep.set('form');
       this.editApiError.set(null);
+      // Discard unsaved avatar picks; re-sync with the stored user.
+      this.photoFile.set(null);
+      this.photoPreview.set(null);
+      this.photoRemovePending.set(false);
+      this.selectedAvatarId.set(this.user()?.profileIconId ?? null);
     }
   }
 
@@ -465,16 +605,27 @@ export class SettingsComponent implements OnInit {
     }
     const { firstName, lastName, email, countryCode, phone } = this.editForm.getRawValue();
     const emailChanged = this.emailChanged();
+    const pendingFile = this.photoFile();
+    // Photo/avatar changes are committed with the form: upload the pending
+    // file (or queue removal) first, then persist the curated-avatar choice.
+    const ops: Observable<unknown>[] = [];
+    if (pendingFile) {
+      ops.push(this.authService.uploadProfilePicture(pendingFile));
+    } else if (this.photoRemovePending()) {
+      ops.push(this.authService.removeProfilePicture());
+    }
+    const payload = {
+      firstName: firstName.trim(),
+      lastName: lastName?.trim() || undefined,
+      email: email.trim(),
+      countryCode: (countryCode ?? '').replace('+', ''),
+      phoneNumber: phone ?? '',
+      profileIcon: null,
+      profileIconId: pendingFile ? null : this.selectedAvatarId() ?? null,
+    };
+    ops.push(this.authService.updateProfile(payload));
     this.saving.set(true);
-    this.authService
-      .updateProfile({
-        firstName: firstName.trim(),
-        lastName: lastName?.trim() || undefined,
-        email: email.trim(),
-        countryCode: (countryCode ?? '').replace('+', ''),
-        phoneNumber: phone ?? '',
-      })
-      .subscribe({
+    concat(...ops).subscribe({
         next: () => {
           this.saving.set(false);
           if (emailChanged) {
@@ -520,6 +671,11 @@ export class SettingsComponent implements OnInit {
 
   openResetPassword(): void {
     this.resetOpen.set(true);
+  }
+
+  /** Re-runs the onboarding spotlight tour without touching the demo flag. */
+  replayTour(): void {
+    this.demoTour.start(true);
   }
 
   onLogout(): void {

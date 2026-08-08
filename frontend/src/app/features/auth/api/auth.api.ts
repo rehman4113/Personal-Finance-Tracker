@@ -14,6 +14,8 @@ export const AUTH_API = {
   RESET_PASSWORD: '/api/v1/auth/reset-password',
   UPDATE_PROFILE: '/api/v1/auth/profile',
   DEMO_COMPLETE: '/api/v1/auth/demo-complete',
+  AVATARS: '/api/v1/auth/avatars',
+  UPLOAD_PROFILE_PICTURE: '/api/v1/auth/profile/picture',
 } as const;
 
 /** Endpoints that must NOT receive Bearer access token.

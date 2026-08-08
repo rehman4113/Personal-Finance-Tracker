@@ -7,6 +7,7 @@
     top: calc(100% + 6px);
     right: 0;
     min-width: 220px;
+    max-width: calc(100vw - 1.5rem);
     background: color-mix(in srgb, var(--pfm-card-bg) 86%, transparent);
     border-radius: var(--pfm-radius-lg);
     box-shadow: var(--pfm-shadow-card);
@@ -41,6 +42,16 @@
       > *:nth-child(8) { animation-delay: 196ms; }
       > *:nth-child(n + 9) { animation-delay: 224ms; }
     }
+  }
+
+  /* Semi-transparent tap-outside layer behind an open menu (opt-in via the
+     [backdrop] input). Fixed so it covers the whole viewport; kept below the
+     menu (z 1060) but above page content. */
+  &__backdrop {
+    position: fixed;
+    inset: 0;
+    background: var(--pfm-overlay-bg);
+    z-index: 1055;
   }
 }
 

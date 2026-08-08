@@ -1,5 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, tap, map, catchError, throwError, finalize, forkJoin } from 'rxjs';
 import { APP_CONFIG } from '../../../core/config/app.config';
 import { ApiResponse } from '../../auth/dto/response/api-response.dto';
@@ -9,15 +9,30 @@ import { MasterDataDto, PurposeWithSubcategories, SimpleMasterItem } from '../dt
 import { WalletDto, WalletRequest, WalletTypeDto, WalletTypeRequest } from '../dto/wallet.dto';
 import { CreateTransactionRequest, TransactionDto } from '../dto/transaction.dto';
 import { BudgetDto, BudgetRequest } from '../dto/budget.dto';
-import { LedgerEntryDto, LoanHistoryDto, LoanUserDto, LoanUserRequest } from '../dto/loan.dto';
+import { LedgerEntryDto, LoanHistoryDto, LoanHistoryFilter, LoanTotalsDto, LoanUserDto, LoanUserRequest } from '../dto/loan.dto';
 import { PurposeCreatedItem, PurposeRequest, SubcategoryRequest } from '../dto/purpose.dto';
 import { TransactionTypeCode } from '../models/transaction-mode.model';
 import { COMPLETED_STATUS_CODE, PURPOSE_CODES_BY_TYPE, TRANSACTION_TYPE_CODES } from '../constants/transaction.constants';
+import { PAGE_SIZE_ALL, PageResponse } from '../../../shared/dto/page-response.dto';
 
 export interface ApiErrorShape {
   message: string;
   code: string | null;
   status: number;
+}
+
+/** Filter payload for the server-side transaction list (mirrors backend TransactionFilter). */
+export interface TransactionListParams {
+  page?: number;
+  size?: number;
+  type?: string;
+  status?: string;
+  purpose?: string;
+  subcategory?: string;
+  from?: string;
+  to?: string;
+  walletId?: number | null;
+  search?: string;
 }/**
  * THE single finance data service (Section 12).
  * WHY: master data, wallets, transactions, budgets and loan users are shared,
@@ -34,6 +49,7 @@ export class TransactionService {
   private readonly _masterData = signal<MasterDataDto | null>(null);
   private readonly _wallets = signal<WalletDto[]>([]);
   private readonly _transactions = signal<TransactionDto[]>([]);
+  private readonly _transactionsPage = signal<PageResponse<TransactionDto> | null>(null);
   private readonly _budgets = signal<BudgetDto[]>([]);
   private readonly _budgetsMonth = signal<string>('');
   private readonly _loanUsers = signal<LoanUserDto[]>([]);
@@ -44,6 +60,7 @@ export class TransactionService {
   readonly masterData = this._masterData.asReadonly();
   readonly wallets = this._wallets.asReadonly();
   readonly transactions = this._transactions.asReadonly();
+  readonly transactionsPage = this._transactionsPage.asReadonly();
   readonly budgets = this._budgets.asReadonly();
   readonly budgetsMonth = this._budgetsMonth.asReadonly();
   readonly loanUsers = this._loanUsers.asReadonly();
@@ -128,10 +145,10 @@ export class TransactionService {
 
   loadWallets(): Observable<void> {
     return this.http
-      .get<ApiResponse<WalletDto[]>>(`${this.baseUrl}${TRANSACTION_API.WALLETS}`)
+      .get<ApiResponse<PageResponse<WalletDto>>>(`${this.baseUrl}${TRANSACTION_API.WALLETS}`, listParams(0, PAGE_SIZE_ALL))
       .pipe(
         tap((res) => {
-          if (res.success && Array.isArray(res.data)) this._wallets.set(res.data);
+          if (res.success && res.data?.content) this._wallets.set(res.data.content);
         }),
         map(() => undefined),
         catchError((err) => this.handleError(err, 'Failed to load wallets')),
@@ -362,14 +379,62 @@ export class TransactionService {
     this._isLoading.set(true);
     this._loadError.set(null);
     return this.http
-      .get<ApiResponse<TransactionDto[]>>(`${this.baseUrl}${TRANSACTION_API.TRANSACTIONS}`)
+      .get<ApiResponse<PageResponse<TransactionDto>>>(`${this.baseUrl}${TRANSACTION_API.TRANSACTIONS}`, listParams(0, PAGE_SIZE_ALL))
       .pipe(
         tap((res) => {
-          if (res.success && Array.isArray(res.data)) this._transactions.set(res.data);
+          if (res.success && res.data?.content) this._transactions.set(res.data.content);
         }),
         map(() => undefined),
         catchError((err) => this.handleError(err, 'Failed to load transactions')),
         finalize(() => this._isLoading.set(false)),
+      );
+  }
+
+  /** Loads one server-side page with the optional filters (transaction list page). */
+  loadTransactionsPage(params: TransactionListParams = {}): Observable<PageResponse<TransactionDto>> {
+    this._isLoading.set(true);
+    this._loadError.set(null);
+    const page = params.page ?? 0;
+    const size = params.size ?? 20;
+    const extras = {
+      type: params.type ?? '',
+      status: params.status ?? '',
+      purpose: params.purpose ?? '',
+      subcategory: params.subcategory ?? '',
+      from: params.from ?? '',
+      to: params.to ?? '',
+      walletId: params.walletId ?? '',
+      search: params.search ?? '',
+    };
+    return this.http
+      .get<ApiResponse<PageResponse<TransactionDto>>>(`${this.baseUrl}${TRANSACTION_API.TRANSACTIONS}`, listParams(page, size, extras))
+      .pipe(
+        tap((res) => {
+          if (res.success && res.data) this._transactionsPage.set(res.data);
+        }),
+        map((res) => res.data ?? emptyPage<TransactionDto>()),
+        catchError((err) => this.handleError(err, 'Failed to load transactions')),
+        finalize(() => this._isLoading.set(false)),
+      );
+  }
+
+  /** Fetches ALL rows matching the current filters for CSV export (does not touch page state). */
+  exportTransactionsPage(params: TransactionListParams = {}): Observable<TransactionDto[]> {
+    const extras = {
+      type: params.type ?? '',
+      status: params.status ?? '',
+      purpose: params.purpose ?? '',
+      subcategory: params.subcategory ?? '',
+      from: params.from ?? '',
+      to: params.to ?? '',
+      walletId: params.walletId ?? '',
+      search: params.search ?? '',
+    };
+    return this.http
+      .get<ApiResponse<PageResponse<TransactionDto>>>(`${this.baseUrl}${TRANSACTION_API.TRANSACTIONS}`, listParams(0, PAGE_SIZE_ALL, extras))
+      .pipe(
+        map((res) => res.data?.content ?? []),
+        catchError((err) => this.handleError(err, 'Failed to export transactions')),
       );
   }
 
@@ -414,10 +479,10 @@ export class TransactionService {
     this._isLoading.set(true);
     this._budgetsMonth.set(month);
     return this.http
-      .get<ApiResponse<BudgetDto[]>>(`${this.baseUrl}${TRANSACTION_API.BUDGETS}`, { params: { month } })
+      .get<ApiResponse<PageResponse<BudgetDto>>>(`${this.baseUrl}${TRANSACTION_API.BUDGETS}`, listParams(0, PAGE_SIZE_ALL, { month }))
       .pipe(
         tap((res) => {
-          if (res.success && Array.isArray(res.data)) this._budgets.set(res.data);
+          if (res.success && res.data?.content) this._budgets.set(res.data.content);
         }),
         map(() => undefined),
         catchError((err) => this.handleError(err, 'Failed to load budgets')),
@@ -475,10 +540,10 @@ export class TransactionService {
 
   loadLoanUsers(): Observable<void> {
     return this.http
-      .get<ApiResponse<LoanUserDto[]>>(`${this.baseUrl}${TRANSACTION_API.LOAN_USERS}`)
+      .get<ApiResponse<PageResponse<LoanUserDto>>>(`${this.baseUrl}${TRANSACTION_API.LOAN_USERS}`, listParams(0, PAGE_SIZE_ALL))
       .pipe(
         tap((res) => {
-          if (res.success && Array.isArray(res.data)) this._loanUsers.set(res.data);
+          if (res.success && res.data?.content) this._loanUsers.set(res.data.content);
         }),
         map(() => undefined),
         catchError((err) => this.handleError(err, 'Failed to load loan users')),
@@ -513,11 +578,38 @@ export class TransactionService {
 
   loadLoanHistory(id: number): Observable<LoanHistoryDto[]> {
     return this.http
-      .get<ApiResponse<LoanHistoryDto[]>>(`${this.baseUrl}${TRANSACTION_API.loanUserHistory(id)}`)
+      .get<ApiResponse<PageResponse<LoanHistoryDto>>>(`${this.baseUrl}${TRANSACTION_API.loanUserHistory(id)}`, listParams(0, PAGE_SIZE_ALL))
       .pipe(
-        map((res) => res.data ?? []),
+        map((res) => res.data?.content ?? []),
         catchError((err) => this.handleError(err)),
       );
+  }
+
+  /**
+   * Combined loan history with optional per-user / status / date filters.
+   * Returns the full matching set (client-side table pagination).
+   */
+  loadFilteredLoanHistory(filter: LoanHistoryFilter = {}): Observable<LoanHistoryDto[]> {
+    const params = listParams(0, PAGE_SIZE_ALL, {
+      loanUserId: filter.loanUserId ?? '',
+      status: filter.status ?? '',
+      from: filter.from ?? '',
+      to: filter.to ?? '',
+    });
+    return this.http
+      .get<ApiResponse<PageResponse<LoanHistoryDto>>>(`${this.baseUrl}${TRANSACTION_API.LOAN_HISTORY}`, params)
+      .pipe(
+        map((res) => res.data?.content ?? []),
+        catchError((err) => this.handleError(err)),
+      );
+  }
+
+  /** Aggregate receivable/payable exposure across all loan users. */
+  loadLoanTotals(): Observable<LoanTotalsDto | null> {
+    return this.http.get<ApiResponse<LoanTotalsDto>>(`${this.baseUrl}${TRANSACTION_API.LOAN_TOTALS}`).pipe(
+      map((res) => (res.success && res.data ? res.data : null)),
+      catchError((err) => this.handleError(err)),
+    );
   }
 
   private refreshLoanUsers(): void {
@@ -569,5 +661,32 @@ function itemToMasterItem(item: WalletTypeDto): SimpleMasterItem {
     description: item.description ?? undefined,
     active: item.active,
     userId: item.userId ?? null,
+  };
+}
+
+/** Builds HttpParams for a list endpoint (page/size always sent, extras merged). */
+function listParams(page: number | undefined, size: number | undefined, extra?: Record<string, string | number>): { params: HttpParams } {
+  let params = new HttpParams();
+  if (page != null) params = params.set('page', String(page));
+  if (size != null) params = params.set('size', String(size));
+  if (extra) {
+    for (const [k, v] of Object.entries(extra)) {
+      if (v !== undefined && v !== null && v !== '') params = params.set(k, String(v));
+    }
+  }
+  return { params };
+}
+
+/** Fallback empty page so endpoints that temporarily fail don't break TS null checks. */
+function emptyPage<T>(): PageResponse<T> {
+  return {
+    content: [],
+    totalElements: 0,
+    totalPages: 0,
+    pageNumber: 0,
+    pageSize: 0,
+    first: true,
+    last: true,
+    empty: true,
   };
 }

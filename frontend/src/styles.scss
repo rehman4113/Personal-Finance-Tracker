@@ -3,6 +3,12 @@
 
 :root {
   --pfm-primary: #1e3a5f;
+
+  /* Typography: one geometric sans family for the whole app. body already uses
+     Manrope directly, but Bootstrap components (buttons, forms, badges, cards)
+     resolve --bs-font-sans-serif — point it at Manrope so zero components fall
+     back to the default system stack. */
+  --bs-font-sans-serif: 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --pfm-primary-light: #2d5a8e;
   --pfm-primary-deep: #13243c;
   --pfm-panel-accent: #ffd166;
@@ -25,6 +31,7 @@
   --pfm-sidebar-w: 264px;
   --pfm-sidebar-w-collapsed: 68px;
   --pfm-topbar-h: 60px;
+  --pfm-topbar-bg: #101a2e;
   --pfm-sidebar-bg-start: #16233f;
   --pfm-sidebar-bg-end: #0c1526;
   --pfm-sidebar-text: #b8c4d9;
@@ -103,6 +110,8 @@ body {
    every component inside the shell inherits these tokens automatically.
    ====================================================================== */
 .app-shell {
+  --pfm-theme-mode: dark;
+
   /* Page surface — deep blue-toned navy, not pure black */
   --pfm-bg-gradient-start: #0b1120;
   --pfm-bg-gradient-end: #111827;
@@ -119,6 +128,18 @@ body {
   --pfm-overlay-bg: rgba(11, 17, 32, 0.65);
   --pfm-skeleton-from: rgba(255, 255, 255, 0.07);
   --pfm-skeleton-to: rgba(255, 255, 255, 0.14);
+
+  /* Top-nav palette (dark) — header surface + icon/pill colors so the
+     navbar switches themes purely via tokens (top-navbar.component.scss). */
+  --pfm-topbar-bg: #101a2e;
+  --pfm-nav-border: rgba(255, 255, 255, 0.08);
+  --pfm-nav-icon-text: #b8c4d9;
+  --pfm-nav-icon-hover: #ffffff;
+  --pfm-nav-hover-bg: rgba(255, 255, 255, 0.08);
+  --pfm-nav-active-bg: rgba(255, 209, 102, 0.14);
+  --pfm-nav-active-text: #ffd166;
+  --pfm-nav-icon-bg: rgba(255, 255, 255, 0.06);
+  --pfm-nav-icon-hover-bg: rgba(255, 255, 255, 0.12);
 
   /* Text (WCAG AA on dark) */
   --pfm-text-primary: #e6edf7;
@@ -159,6 +180,20 @@ body {
   --bs-card-bg: var(--pfm-card-bg);
   --bs-card-border-color: var(--pfm-card-border);
   --bs-card-cap-bg: transparent;
+
+  /* Unified card system — Bootstrap .card surfaces derive every radius,
+     padding and shadow from the design tokens, so stat cards, table
+     containers, loan-user cards and chart cards belong to one system. */
+  --bs-card-border-width: 1px;
+  --bs-card-border-radius: var(--pfm-radius-card);
+  --bs-card-inner-border-radius: calc(var(--pfm-radius-card) - 2px);
+  --bs-card-spacer-x: 1.5rem;
+  --bs-card-spacer-y: 1.25rem;
+  --bs-card-cap-padding-x: 1.5rem;
+  --bs-card-cap-padding-y: 0.85rem;
+  --bs-box-shadow: var(--pfm-shadow);
+  --bs-box-shadow-sm: var(--pfm-shadow);
+  --bs-box-shadow-lg: var(--pfm-shadow-card);
   --bs-progress-bg: rgba(255, 255, 255, 0.08);
   --bs-link-color: #8ab4f8;
   --bs-link-hover-color: #a9c9ff;
@@ -329,8 +364,163 @@ body {
 }
 
 /* ======================================================================
-   GLOBAL PRESENTATION UTILITIES (UI polish pass)
+   LIGHT THEME VARIANT — finance application shell
+   WHY: same full token surface as the dark shell, inverted to a clean
+   light slate. Theme is chosen with the sun/moon toggle in the top bar
+   and persisted via localStorage (ThemeService). Auth pages keep their
+   own dark glass design untouched.
    ====================================================================== */
+.app-shell[data-theme='light'] {
+  --pfm-theme-mode: light;
+
+  /* Page surface — soft cool grey-blue, matching the global :root default */
+  --pfm-bg-gradient-start: #eef2f7;
+  --pfm-bg-gradient-end: #dfe6ef;
+
+  /* Elevated surfaces */
+  --pfm-card-bg: #ffffff;
+  --pfm-card-border: rgba(30, 58, 95, 0.1);
+  --pfm-input-bg: #ffffff;
+  --pfm-input-border: #cbd5e1;
+  --pfm-row-hover: rgba(30, 58, 95, 0.045);
+  --pfm-divider: rgba(30, 58, 95, 0.09);
+  --pfm-table-header-bg: #f2f5fa;
+  --pfm-table-header-text: #1e3a5f;
+  --pfm-overlay-bg: rgba(255, 255, 255, 0.55);
+  --pfm-skeleton-from: #e4eaf2;
+  --pfm-skeleton-to: #f2f6fb;
+
+  /* Text */
+  --pfm-text-primary: #16243d;
+  --pfm-text-muted: #5b6776;
+  --pfm-text-faint: #8a94a6;
+  --pfm-primary-deep: #16243d;
+
+  /* Accent (amber stays — brand constant) */
+  --pfm-panel-accent: #f0a500;
+
+  /* Status tints (pill backgrounds on light) */
+  --pfm-success: #1a7f4b;
+  --pfm-success-tint: rgba(25, 135, 84, 0.1);
+  --pfm-danger: #dc3545;
+  --pfm-danger-tint: rgba(220, 53, 69, 0.09);
+  --pfm-warning: #b45309;
+  --pfm-warning-tint: rgba(251, 191, 36, 0.16);
+  --pfm-info: #0e7490;
+  --pfm-info-tint: rgba(13, 202, 240, 0.14);
+  --pfm-primary-tint: rgba(30, 58, 95, 0.08);
+  --pfm-primary-icon: var(--pfm-primary);
+
+  /* Top-nav palette (light) — inverted header surface + AA text on white */
+  --pfm-topbar-bg: #f8fafc;
+  --pfm-nav-border: rgba(30, 58, 95, 0.1);
+  --pfm-nav-icon-text: #475569;
+  --pfm-nav-icon-hover: #16243d;
+  --pfm-nav-hover-bg: rgba(15, 23, 42, 0.05);
+  --pfm-nav-active-bg: rgba(240, 165, 0, 0.16);
+  --pfm-nav-active-text: #b45309;
+  --pfm-nav-icon-bg: rgba(30, 58, 95, 0.05);
+  --pfm-nav-icon-hover-bg: rgba(15, 23, 42, 0.08);
+
+  /* Shadows */
+  --pfm-shadow: 0 8px 24px rgba(30, 58, 95, 0.1);
+  --pfm-shadow-card: 0 24px 60px rgba(8, 15, 30, 0.22);
+
+  /* Bootstrap CSS-var overrides */
+  --bs-body-bg: var(--pfm-bg-gradient-start);
+  --bs-body-color: var(--pfm-text-primary);
+  --bs-secondary-color: var(--pfm-text-muted);
+  --bs-secondary-bg: var(--pfm-card-bg);
+  --bs-emphasis-color: #16243d;
+  --bs-border-color: var(--pfm-divider);
+  --bs-border-color-translucent: var(--pfm-divider);
+  --bs-card-bg: var(--pfm-card-bg);
+  --bs-card-border-color: var(--pfm-card-border);
+  --bs-progress-bg: #e9eef5;
+  --bs-link-color: #1e3a5f;
+  --bs-link-hover-color: #2d5a8e;
+  --bs-focus-ring-color: rgba(240, 165, 0, 0.3);
+
+  --bs-success-text-emphasis: #198754;
+  --bs-success-bg-subtle: rgba(25, 135, 84, 0.1);
+  --bs-danger-text-emphasis: #dc3545;
+  --bs-danger-bg-subtle: rgba(220, 53, 69, 0.09);
+  --bs-warning-text-emphasis: #b45309;
+  --bs-warning-bg-subtle: rgba(251, 191, 36, 0.16);
+  --bs-info-text-emphasis: #0e7490;
+  --bs-info-bg-subtle: rgba(13, 202, 240, 0.14);
+  --bs-secondary-text-emphasis: #5b677a;
+  --bs-secondary-bg-subtle: rgba(148, 163, 184, 0.16);
+  --bs-progress-bar-bg: var(--pfm-panel-accent);
+
+  /* Form controls */
+  .form-control,
+  .form-select,
+  .form-control-lg-custom,
+  .form-select-lg-custom {
+    background-color: var(--pfm-input-bg);
+    border-color: var(--pfm-input-border);
+    color: var(--pfm-text-primary);
+
+    &::placeholder {
+      color: var(--pfm-text-faint);
+    }
+
+    &:focus {
+      background-color: var(--pfm-input-bg);
+      border-color: var(--pfm-panel-accent);
+      color: var(--pfm-text-primary);
+    }
+
+    &:disabled {
+      background-color: #f5f7fa;
+      color: var(--pfm-text-faint);
+    }
+  }
+
+  .form-select {
+    --bs-form-select-bg-img: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%235b6770' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+  }
+
+  .form-select option,
+  .form-control option {
+    background-color: var(--pfm-input-bg);
+    color: var(--pfm-text-primary);
+  }
+
+  .input-group-text {
+    background-color: var(--pfm-input-bg);
+    border-color: var(--pfm-input-border);
+    color: var(--pfm-text-muted);
+  }
+
+  .btn-primary-gradient {
+    background: linear-gradient(135deg, #1e3a5f, #2d5a8e);
+    box-shadow: 0 6px 16px rgba(30, 58, 95, 0.18);
+  }
+
+  .card {
+    background-color: var(--pfm-card-bg);
+    border: 1px solid var(--pfm-card-border);
+    box-shadow: var(--pfm-shadow);
+  }
+
+  .card-header {
+    color: var(--pfm-text-primary);
+  }
+
+  .progress {
+    background-color: #e9eef5;
+  }
+
+  .table {
+    --bs-table-color: var(--pfm-text-primary);
+    --bs-table-bg: transparent;
+    --bs-table-hover-bg: var(--pfm-row-hover);
+    --bs-table-border-color: var(--pfm-divider);
+    --bs-table-striped-bg: rgba(30, 58, 95, 0.025);
+  }
+}
 
 /* Glassmorphism surface — semi-transparent fill + backdrop blur + thin
    light border, so key cards read as floating over the gradient backdrop.
@@ -759,3 +949,95 @@ body {
 }
 
 
+
+/* ======================================================================
+   DRIVER.JS ONBOARDING TOUR � themed to the dark finance shell
+   WHY: driver.js ships with light popover defaults; these overrides keep
+   the spotlight popovers on-brand with the rest of the app shell.
+   ====================================================================== */
+.pfm-tour-popover {
+  font-family: 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  background-color: #161f32;
+  color: #e6edf7;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+  padding: 18px 20px;
+  min-width: 280px;
+  max-width: 340px;
+
+  .driver-popover-title {
+    color: #e6edf7;
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+  }
+
+  .driver-popover-description {
+    color: #9fb0c9;
+    font-size: 0.875rem;
+    line-height: 1.55;
+    margin-top: 6px;
+  }
+
+  .driver-popover-close-btn {
+    color: #7c8ba5;
+
+    &:hover,
+    &:focus {
+      color: #e6edf7;
+    }
+  }
+
+  .driver-popover-progress-text {
+    color: #7c8ba5;
+    font-size: 0.75rem;
+  }
+
+  .driver-popover-footer-btn {
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background-color: transparent;
+    color: #e6edf7;
+    padding: 6px 12px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+
+    &:hover,
+    &:focus {
+      background-color: rgba(255, 255, 255, 0.08);
+    }
+  }
+
+  .driver-popover-navigation-btns .driver-popover-footer-btn:last-child {
+    background: linear-gradient(135deg, #1e3a5f, #2d5a8e);
+    border-color: transparent;
+    color: #fff;
+
+    &:hover,
+    &:focus {
+      background: linear-gradient(135deg, #2d5a8e, #1e3a5f);
+      color: #fff;
+    }
+  }
+
+  .driver-popover-arrow {
+    border-color: #161f32;
+
+    &.driver-popover-arrow-side-top {
+      border-top-color: #161f32;
+    }
+
+    &.driver-popover-arrow-side-bottom {
+      border-bottom-color: #161f32;
+    }
+
+    &.driver-popover-arrow-side-left {
+      border-left-color: #161f32;
+    }
+
+    &.driver-popover-arrow-side-right {
+      border-right-color: #161f32;
+    }
+  }
+}

@@ -64,6 +64,41 @@ import { CountUpDirective } from '../../shared/directives/count-up.directive';
           }
         </div>
 
+        @if (loanTotals() !== null) {
+          <div class="row g-3 mt-1">
+            <div class="col-sm-6 col-xl-3">
+              <div class="card border-0 shadow-sm h-100">
+                <div class="card-body py-3 px-4 d-flex align-items-center gap-3">
+                  <div class="dashboard-mini-icon dashboard-mini-icon--info">
+                    <i class="bi bi-arrow-down-circle"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <div class="small text-muted">Loan Receivable</div>
+                    <div class="fw-semibold fs-5">
+                      <span appCountUp [appCountUpValue]="loanTotals()!.totalReceivable" appCountUpFormat="compact"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+              <div class="card border-0 shadow-sm h-100">
+                <div class="card-body py-3 px-4 d-flex align-items-center gap-3">
+                  <div class="dashboard-mini-ico dashboard-mini-ico--warning">
+                    <i class="bi bi-arrow-up-circle"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <div class="small text-muted">Loan Payable</div>
+                    <div class="fw-semibold fs-5">
+                      <span appCountUp [appCountUpValue]="loanTotals()!.totalPayable" appCountUpFormat="compact"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+
         <div class="row g-4 mt-1">
           <div class="col-lg-8">
             <div class="card border-0 shadow-sm h-100">
@@ -295,6 +330,8 @@ export class DashboardComponent implements OnInit {
     );
   });
 
+  readonly loanTotals = signal<{ totalReceivable: number; totalPayable: number } | null>(null);
+
   readonly monthlyTrend = computed(() => {
     const txs = this.service.transactions() ?? [];
     const buckets = new Map<string, { income: number; expense: number }>();
@@ -332,6 +369,10 @@ export class DashboardComponent implements OnInit {
       .loadDashboardData(this.month())
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({ error: () => undefined });
+    this.service.loadLoanTotals().subscribe({
+      next: (t) => this.loanTotals.set(t),
+      error: () => undefined,
+    });
   }
 
   barWidth(usage: number | undefined): number {

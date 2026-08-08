@@ -4,10 +4,12 @@ import com.rehman.finance.auth.security.UserPrincipal;
 import com.rehman.finance.finance.api.FinanceApi;
 import com.rehman.finance.finance.dto.request.LoanUserRequest;
 import com.rehman.finance.finance.dto.response.LoanHistoryResponse;
+import com.rehman.finance.finance.dto.response.LoanTotalsResponse;
 import com.rehman.finance.finance.dto.response.LoanUserResponse;
 import com.rehman.finance.finance.service.LoanHistoryService;
 import com.rehman.finance.finance.service.LoanUserService;
 import com.rehman.finance.response.ApiResponse;
+import com.rehman.finance.response.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -17,8 +19,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Tag(name = "Loan User Management", description = "Endpoints for managing loan users (people with whom you have loan relationships)")
 @RestController
@@ -55,14 +55,22 @@ public class LoanUserController {
         return ResponseEntity.ok(ApiResponse.success(loanUserService.getLoanUser(currentUser.getUserId(), id)));
     }
 
-    @Operation(summary = "Get all user loan users")
+    @GetMapping("/totals")
+    public ResponseEntity<ApiResponse<LoanTotalsResponse>> getLoanTotals(
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+        return ResponseEntity.ok(ApiResponse.success(loanUserService.getLoanTotals(currentUser.getUserId())));
+    }
+
+    @Operation(summary = "Get all user loan users (paginated)")
     @ApiResponses(value = {
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "List of loan users")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Paginated list of loan users")
     })
     @GetMapping
-    public ResponseEntity<ApiResponse<List<LoanUserResponse>>> getUserLoanUsers(
-            @AuthenticationPrincipal UserPrincipal currentUser) {
-        return ResponseEntity.ok(ApiResponse.success(loanUserService.getUserLoanUsers(currentUser.getUserId())));
+    public ResponseEntity<ApiResponse<PageResponse<LoanUserResponse>>> getUserLoanUsers(
+            @AuthenticationPrincipal UserPrincipal currentUser,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(ApiResponse.success(loanUserService.getUserLoanUsers(currentUser.getUserId(), page, size)));
     }
 
     @Operation(summary = "Update a loan user")
@@ -78,16 +86,22 @@ public class LoanUserController {
         return ResponseEntity.ok(ApiResponse.success("Loan user updated", loanUserService.updateLoanUser(currentUser.getUserId(), id, request)));
     }
 
-    @Operation(summary = "Get loan history for a loan user")
+    @Operation(summary = "Get loan history for a loan user (paginated)")
     @ApiResponses(value = {
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "List of loan history records"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Paginated list of loan history records"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Loan user not found")
     })
     @GetMapping("/{id}/history")
-    public ResponseEntity<ApiResponse<List<LoanHistoryResponse>>> getLoanHistory(
+    public ResponseEntity<ApiResponse<PageResponse<LoanHistoryResponse>>> getLoanHistory(
             @AuthenticationPrincipal UserPrincipal currentUser,
-            @PathVariable Long id) {
-        return ResponseEntity.ok(ApiResponse.success(loanHistoryService.getLoanHistoryByUser(currentUser.getUserId(), id)));
+            @PathVariable Long id,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String from,
+            @RequestParam(required = false) String to,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(ApiResponse.success(
+                loanHistoryService.getLoanHistory(currentUser.getUserId(), id, status, from, to, page, size)));
     }
 
 }

@@ -18,6 +18,7 @@ import com.rehman.finance.auth.dto.response.ResendOtpResponse;
 import com.rehman.finance.auth.dto.response.ResetPasswordResponse;
 import com.rehman.finance.auth.dto.response.UserProfileResponse;
 import com.rehman.finance.auth.dto.response.VerifyEmailResponse;
+import com.rehman.finance.auth.dto.response.ProfileAvatarResponse;
 import com.rehman.finance.auth.security.UserPrincipal;
 import com.rehman.finance.auth.service.AuthService;
 import com.rehman.finance.response.ApiResponse;
@@ -27,15 +28,22 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @Tag(name = "Authentication", description = "Endpoints for user authentication and authorization")
 @RestController
@@ -135,6 +143,15 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("Password reset successfully", authService.resetPassword(request)));
     }
 
+    @Operation(summary = "List curated profile avatars")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Available avatars")
+    })
+    @GetMapping("/avatars")
+    public ResponseEntity<ApiResponse<List<ProfileAvatarResponse>>> getAvatars() {
+        return ResponseEntity.ok(ApiResponse.success("Available avatars", authService.getAvatars()));
+    }
+
     @Operation(summary = "Update the authenticated user's profile")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Profile updated successfully"),
@@ -148,6 +165,32 @@ public class AuthController {
             @Valid @RequestBody UpdateProfileRequest request) {
         return ResponseEntity.ok(ApiResponse.success("Profile updated successfully",
                 authService.updateProfile(currentUser.getUserId(), request)));
+    }
+
+    @Operation(summary = "Upload the authenticated user's profile picture")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Picture uploaded successfully"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid image type"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "User not found")
+    })
+    @PostMapping(value = "/profile/picture", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<UserProfileResponse>> uploadProfilePicture(
+            @AuthenticationPrincipal UserPrincipal currentUser,
+            @RequestParam("file") MultipartFile file) {
+        return ResponseEntity.ok(ApiResponse.success("Profile picture uploaded successfully",
+                authService.uploadProfilePicture(currentUser.getUserId(), file)));
+    }
+
+    @Operation(summary = "Remove the authenticated user's uploaded profile picture")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Picture removed successfully"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "User not found")
+    })
+    @DeleteMapping("/profile/picture")
+    public ResponseEntity<ApiResponse<UserProfileResponse>> removeProfilePicture(
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+        return ResponseEntity.ok(ApiResponse.success("Profile picture removed successfully",
+                authService.removeProfilePicture(currentUser.getUserId())));
     }
 
     @Operation(summary = "Mark the demo tour as completed")

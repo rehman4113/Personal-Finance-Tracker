@@ -21,6 +21,8 @@ export const TRANSACTION_API = {
   LOAN_USERS: '/api/v1/finance/loan-users',
   loanUser: (id: number) => `/api/v1/finance/loan-users/${id}`,
   loanUserHistory: (id: number) => `/api/v1/finance/loan-users/${id}/history`,
+  LOAN_TOTALS: '/api/v1/finance/loan-users/totals',
+  LOAN_HISTORY: '/api/v1/finance/loan-history',
 
   BUDGETS: '/api/v1/finance/budgets',
   budget: (id: number) => `/api/v1/finance/budgets/${id}`,

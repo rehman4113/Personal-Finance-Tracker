@@ -9,6 +9,8 @@ export interface LoginUserDto {
   status: string;
   emailVerified: boolean;
   demo: boolean;
+  profileIconId?: number | null;
+  profilePictureUrl?: string | null;
 }
 
 export interface LoginResponseData {

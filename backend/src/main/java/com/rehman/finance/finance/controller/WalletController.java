@@ -6,6 +6,7 @@ import com.rehman.finance.finance.dto.request.WalletRequest;
 import com.rehman.finance.finance.dto.response.WalletResponse;
 import com.rehman.finance.finance.service.WalletService;
 import com.rehman.finance.response.ApiResponse;
+import com.rehman.finance.response.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -15,8 +16,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Tag(name = "Wallet Management", description = "Endpoints for managing user wallets")
 @RestController
@@ -52,14 +51,16 @@ public class WalletController {
         return ResponseEntity.ok(ApiResponse.success(walletService.getWallet(currentUser.getUserId(), id)));
     }
 
-    @Operation(summary = "Get all user wallets")
+    @Operation(summary = "Get all user wallets (paginated)")
     @ApiResponses(value = {
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "List of wallets")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Paginated list of wallets")
     })
     @GetMapping
-    public ResponseEntity<ApiResponse<List<WalletResponse>>> getUserWallets(
-            @AuthenticationPrincipal UserPrincipal currentUser) {
-        return ResponseEntity.ok(ApiResponse.success(walletService.getUserWallets(currentUser.getUserId())));
+    public ResponseEntity<ApiResponse<PageResponse<WalletResponse>>> getUserWallets(
+            @AuthenticationPrincipal UserPrincipal currentUser,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(ApiResponse.success(walletService.getUserWallets(currentUser.getUserId(), page, size)));
     }
 
     @Operation(summary = "Update a wallet")

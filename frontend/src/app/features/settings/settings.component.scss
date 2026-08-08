@@ -36,6 +36,11 @@
     box-shadow:
       0 10px 24px rgba(240, 192, 79, 0.35),
       inset 0 1px 0 rgba(255, 255, 255, 0.5);
+
+    i {
+      font-size: 2.1rem;
+      line-height: 1;
+    }
   }
 
   &__name {
@@ -75,6 +80,113 @@
     &--unverified {
       color: #451a03;
       background: linear-gradient(135deg, #fcd34d, #f59e0b);
+    }
+  }
+
+  &__avatar-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  &__picker {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.5rem;
+
+    @media (max-width: 575.98px) {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  /* Live preview circle in the Edit Profile avatar section — immediate
+     feedback for pending (unsaved) avatar/photo choices. */
+  &__picker-preview {
+    width: 3.5rem;
+    height: 3.5rem;
+    margin: 0 auto 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #241703;
+    background: linear-gradient(135deg, #f9dd8e 0%, #f0c04f 45%, #d99a2b 100%);
+    overflow: hidden;
+
+    &-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+  }
+
+  &__avatar-option {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 2px solid transparent;
+    border-radius: 14px;
+    background: transparent;
+    cursor: pointer;
+    transition: border-color 0.14s ease, transform 0.12s ease, opacity 0.14s ease;
+
+    img {
+      width: 100%;
+      height: 100%;
+      border-radius: 12px;
+      object-fit: cover;
+    }
+
+    &:hover {
+      transform: translateY(-1px);
+    }
+
+    &--active {
+      border-color: var(--pfm-primary);
+      box-shadow: 0 0 0 3px rgba(255, 209, 102, 0.25);
+    }
+
+    &--upload {
+      color: var(--pfm-text-muted);
+      background: rgba(255, 255, 255, 0.05);
+      border-style: dashed;
+      border-color: var(--pfm-card-border);
+      font-size: 1.4rem;
+    }
+  }
+
+  &__icon-option {
+    width: 100%;
+    aspect-ratio: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    color: var(--pfm-text-primary);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--pfm-card-border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: border-color 0.14s ease, background-color 0.14s ease, transform 0.12s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-1px);
+    }
+
+    &--active {
+      border-color: var(--pfm-primary);
+      background: rgba(255, 209, 102, 0.14);
+      color: var(--pfm-primary);
     }
   }
 }
